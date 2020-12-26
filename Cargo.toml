@@ -1,0 +1,27 @@
+[package]
+name = "eso-addons"
+version = "0.1.0"
+authors = ["Damian Czaja <trojan295@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "eso-addons"
+path = "src/main.rs"
+
+[lib]
+
+[dependencies]
+toml = "0.4"
+serde = "1.0"
+serde_derive = "1.0"
+clap = "3.0.0-beta.2"
+dirs = "3.0"
+simple-error = "0.2"
+regex = "1"
+reqwest = { version = "0.10", features = ["blocking"] }
+html5ever = "0.25"
+markup5ever_rcdom = "0.1"
+zip = "0.5"
+tempfile = "3.1"

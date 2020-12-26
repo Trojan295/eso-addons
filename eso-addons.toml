@@ -1,0 +1,6 @@
+addonDir = "addons"
+
+[[addons]]
+name = "SkyShards"
+url = "https://www.esoui.com/downloads/download128-SkyShards"
+dependency = false
