@@ -18,12 +18,9 @@ pub struct Manager {
     addon_dir: PathBuf,
 }
 
-fn extract_dependency(dep: &str) -> String {
+fn extract_dependency(dep: &str) -> Option<String> {
     let re = Regex::new(r"^(.+?)(([<=>]+)(.*))?$").unwrap();
-    match re.captures(dep) {
-        None => dep.to_owned(),
-        Some(captures) => captures[1].to_owned(),
-    }
+    re.captures(dep).map(|captures| captures[1].to_owned())
 }
 
 impl Manager {
@@ -54,6 +51,12 @@ impl Manager {
         Ok(addons)
     }
 
+    pub fn get_addon(&self, name: &str) -> Result<Option<Addon>, Box<dyn Error>> {
+        let addons = self.get_addons().chain_err("while getting addons")?;
+        let found = addons.into_iter().find(|x| x.name == name);
+        Ok(found)
+    }
+
     fn read_addon(&self, path: &Path) -> Result<Addon, Box<dyn Error>> {
         let addon_name = path
             .file_name()
@@ -80,13 +83,13 @@ impl Manager {
         for line in lines {
             match line {
                 Ok(line) => {
-                    if line.contains("DependsOn") {
+                    if line.starts_with("## DependsOn:") {
                         let depends_on = match re.captures(&line) {
                             Some(ref captures) => captures[2]
                                 .split(" ")
                                 .map(|s| s.to_owned())
                                 .into_iter()
-                                .map(|s| extract_dependency(&s).to_owned())
+                                .filter_map(|s| extract_dependency(&s).to_owned())
                                 .collect(),
                             None => vec![],
                         };
@@ -99,6 +102,15 @@ impl Manager {
         }
 
         Ok(addon)
+    }
+
+    pub fn delete_addon(&self, addon: &Addon) -> Result<(), Box<dyn Error>> {
+        let mut addon_path = self.addon_dir.to_owned();
+        addon_path.push(&addon.name);
+
+        fs::remove_dir_all(addon_path).chain_err("while removing addon directory")?;
+
+        Ok(())
     }
 
     pub fn download_addon(&self, url: &str) -> Result<Addon, Box<dyn Error>> {
