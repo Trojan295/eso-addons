@@ -5,21 +5,82 @@ on:
     branches: [ master ]
 
 name: Create Release
+env:
+  PROJECT_NAME: ${{ github.event.repository.name }}
 
 jobs:
   build:
-    name: Create Release
+    name: Build application
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Rust toolchain "${{ matrix.target }}"
+        uses: actions-rs/toolchain@v1
         with:
-          tag_name: master
-          release_name: Release master
-          draft: false
-          prerelease: true
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+          profile: minimal
+
+      - name: Build Binary "${{ matrix.target }}"
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --verbose --target=${{ matrix.target }}
+
+      - name: Build Binary "${{ matrix.target }}"
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: test
+          args: --verbose --target=${{ matrix.target }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.target }}
+          path: ./target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}
+
+  release_and_publish:
+    name: Create release and publish
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+
+      - name: List All Downloaded Artifacts
+        run: ls -R
+        working-directory: artifacts
+
+#      - name: Create Release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: Release ${{ github.ref }}
+#          draft: false
+#          prerelease: true
+#      - name: Upload Release Asset
+#        id: upload-release-asset 
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: ./my-artifact.zip
+#          asset_name: my-artifact.zip
+#          asset_content_type: application/zip
