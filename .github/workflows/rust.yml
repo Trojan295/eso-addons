@@ -1,0 +1,51 @@
+name: Build and test
+
+on:
+  push:
+    branches: 
+      - master
+  pull_request:
+    branches:
+      - master
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build application
+    runs-on: ${{ matrix.runs_on }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            runs_on: ubuntu-latest
+          - target: x86_64-pc-windows-msvc
+            runs_on: windows-latest
+          - target: x86_64-apple-darwin
+            runs_on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain "${{ matrix.target }}"
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+          profile: minimal
+
+      - name: Build binary "${{ matrix.target }}"
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --verbose --target=${{ matrix.target }}
+
+      - name: Test binary "${{ matrix.target }}"
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: test
+          args: --verbose --target=${{ matrix.target }}
