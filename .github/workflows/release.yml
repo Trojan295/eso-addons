@@ -33,25 +33,31 @@ jobs:
           override: true
           profile: minimal
 
-      - name: Build Binary "${{ matrix.target }}"
+      - name: Build binary "${{ matrix.target }}"
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: build
           args: --release --verbose --target=${{ matrix.target }}
 
-      - name: Test Binary "${{ matrix.target }}"
+      - name: Test binary "${{ matrix.target }}"
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
           command: test
           args: --verbose --target=${{ matrix.target }}
-
+        
+      - name: Rename binary file
+        shell: bash
+        run: |
+          origin="$(find target/${{ matrix.target }}/release -maxdepth 1 -executable -iname "${{ env.PROJECT_NAME }}*")"
+          dest="${origin/${{ env.PROJECT_NAME}}/${{ env.PROJECT_NAME}}-${{ matrix.target}}}"
+          mv "$origin" "$dest"
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.target }}
-          path: ./target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}
+          path: ./target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}-${{ matrix.target }}*
 
   release_and_publish:
     name: Create release and publish
