@@ -1,8 +1,7 @@
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    tags:
+      - "v*"
 
 name: Create Release
 env:
@@ -69,14 +68,11 @@ jobs:
         with:
           path: artifacts
 
-      - name: List All Downloaded Artifacts
-        run: ls -R
-        working-directory: artifacts
-
       - name: Create Release And Publish These Artifacts
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ env.PROJECT_NAME }} ${{ github.ref }}
+          prerelease: true
           files: |
             artifacts/*/*
         env:
