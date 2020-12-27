@@ -16,7 +16,7 @@ jobs:
       matrix:
         target:
           - x86_64-unknown-linux-gnu
-          - x86_64-pc-windows-msvc
+          - x86_64-pc-windows-gnu
           - x86_64-apple-darwin
     steps:
       - name: Checkout code
@@ -37,7 +37,7 @@ jobs:
           command: build
           args: --release --verbose --target=${{ matrix.target }}
 
-      - name: Build Binary "${{ matrix.target }}"
+      - name: Test Binary "${{ matrix.target }}"
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
