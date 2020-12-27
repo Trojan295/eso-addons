@@ -11,7 +11,7 @@ env:
 jobs:
   build:
     name: Build application
-    runs-on: ${{ matrxi.runs_on }}
+    runs-on: ${{ matrix.runs_on }}
     strategy:
       matrix:
         include:
