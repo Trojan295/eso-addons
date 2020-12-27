@@ -72,7 +72,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: Release ${{ env.PROJECT_NAME }} ${{ github.ref }}
-          prerelease: true
           files: |
             artifacts/*/*
         env:

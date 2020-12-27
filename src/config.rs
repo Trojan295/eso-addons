@@ -1,3 +1,4 @@
+use super::errors::*;
 use serde_derive::Deserialize;
 use std::error::Error;
 use std::fs;
@@ -5,9 +6,13 @@ use std::fs;
 #[derive(Deserialize, Debug)]
 pub struct AddonEntry {
     pub name: String,
-    #[serde(default)]
     pub url: Option<String>,
+    #[serde(default = "default_dependency")]
     pub dependency: bool,
+}
+
+fn default_dependency() -> bool {
+    false
 }
 
 #[allow(non_snake_case)]
@@ -19,7 +24,8 @@ pub struct Config {
 }
 
 pub fn parse_config(path: &str) -> Result<Config, Box<dyn Error>> {
-    let config_data = fs::read_to_string(path)?;
+    let config_data =
+        fs::read_to_string(path).chain_err(&format!("while reading config file at {}", path))?;
     let config: Config = toml::from_str(&config_data)?;
     Ok(config)
 }

@@ -6,7 +6,7 @@ This repository holds a simple command line ESO Addon Manager written in Rust. W
   - [Usage](#usage)
     - [Configuration](#configuration)
     - [Install and update addon](#install-and-update-addon)
-    - [List addons and show missing dependencies](#list-addons-and-show-missing-dependencies)
+    - [List addons, show missing or unused dependencies](#list-addons-show-missing-or-unused-dependencies)
     - [Remove addons](#remove-addons)
 
 ## Usage
@@ -16,38 +16,27 @@ This repository holds a simple command line ESO Addon Manager written in Rust. W
 Create a config file in your user directory:
 - Linux - `$HOME/.eso-addons.toml`
 
-
-```
-# addonDir - path of the ESO addon directory
-addonDir = "/home/damian/Games/the-elder-scrolls-online-tamriel-unlimited/drive_c/users/damian/My Documents/Elder Scrolls Online/live/AddOns"
-
-# addons - list of addons to be installed
-#   name - name of addon, must correspond to the addon directory name
-#   url - download URL of the addon. It's the URL of the 'Download' button on ESOUI
-#   TODO: dependency - is the addon only required as a dependency for another addon. Based on this Addon Manager will remove unused addons
-
-[[addons]]
-name = "SkyShards"
-url = "https://www.esoui.com/downloads/download128-SkyShards.html"
-dependency = false
-
-[[addons]]
-name = "HarvestMap"
-url = "https://www.esoui.com/downloads/download57-HarvestMap.html"
-dependency = false
-```
+For a example config see [eso-addons.toml](./eso-addons.toml).
 
 ### Install and update addon
 
-Execute `eso-addons install`, to install and updated all the plugins.
+To install or update addons, execute:
+```
+eso-addons update
+```
 
-### List addons and show missing dependencies
+### List addons, show missing or unused dependencies
 
-Execute `eso-addons list`. This will show the installation status of all addons and detect missing dependencies for the installed addons.
+To list the installation status of addons and show missing or unused dependencies, execute:
+```
+eso-addons list
+```
 
 ### Remove addons
 
 The Addon Manager can remove addons, which are present in the ESO addon dir, but not listed in the configuration file.
+
+It can also detect addons, which are an unused dependency, i.e. you installed addon A, because it was a dependency of B. When you remove B, then `eso-addons` will detect that A is not required anymore and can be removed.
 
 To get the list of addons to be removed, execute:
 ```

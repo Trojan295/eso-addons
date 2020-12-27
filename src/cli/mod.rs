@@ -5,9 +5,13 @@ use eso_addons::config;
 use eso_addons::errors::*;
 
 #[derive(Clap)]
-#[clap(version = "0.1.0", author = "Damian C. <trojan295@gmail.com>")]
+#[clap(
+    version = "0.1.0",
+    author = "Damian C. <trojan295@gmail.com>",
+    about = "CLI tool for managing addon for The Elder Scrolls Online"
+)]
 struct Opts {
-    #[clap(short, long)]
+    #[clap(short, long, about = "path to TOML config file")]
     config: Option<String>,
     #[clap(subcommand)]
     subcmd: SubCommand,
@@ -15,8 +19,11 @@ struct Opts {
 
 #[derive(Clap)]
 enum SubCommand {
+    #[clap(about = "Lists status of installed addons")]
     List(List),
+    #[clap(about = "Installs and updates addons")]
     Update(Update),
+    #[clap(about = "Removes not managed and unused addons")]
     Clean(Clean),
 }
 
@@ -44,13 +51,13 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     match opts.subcmd {
         SubCommand::List(_) => {
-            let desired_addons = config.addons;
+            let desired_addons = &config.addons;
             let installed_addons = addon_manager.get_addons()?;
 
             for addon in desired_addons {
                 match installed_addons.iter().find(|a| a.name == addon.name) {
                     Some(_) => println!("{} is installed", addon.name),
-                    None => println!("{} is not installed", addon.name),
+                    None => println!("WARNING: {} is not installed", addon.name),
                 }
             }
 
@@ -60,15 +67,26 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             if missing_addons.len() > 0 {
                 println!("\nThere are missing addons:");
 
-                for missing in eso_addons::get_missing_dependencies(&installed_addons) {
+                for missing in missing_addons {
                     println!("- {}", missing);
+                }
+            }
+
+            let unused_addons =
+                eso_addons::get_unused_dependencies(&installed_addons, desired_addons);
+
+            if unused_addons.len() > 0 {
+                println!("\nThere are unused dependencies:");
+
+                for unused in unused_addons {
+                    println!("- {}", unused);
                 }
             }
 
             Ok(())
         }
         SubCommand::Update(_) => {
-            let desired_addons = config.addons;
+            let desired_addons = &config.addons;
 
             for addon in desired_addons.iter() {
                 let installed = if let Some(ref url) = addon.url {
@@ -106,6 +124,17 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
                 for missing in eso_addons::get_missing_dependencies(&installed_addons) {
                     println!("- {}", missing);
+                }
+            }
+
+            let unused_addons =
+                eso_addons::get_unused_dependencies(&installed_addons, desired_addons);
+
+            if unused_addons.len() > 0 {
+                println!("\nThere are unused dependencies:");
+
+                for unused in unused_addons {
+                    println!("- {}", unused);
                 }
             }
 

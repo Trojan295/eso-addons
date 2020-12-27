@@ -1,6 +1,46 @@
-addonDir = "addons"
+# addonDir - location of the ESO addon directory
+addonDir = "/home/damian/Games/the-elder-scrolls-online-tamriel-unlimited/drive_c/users/damian/My Documents/Elder Scrolls Online/live/AddOns"
 
+# addons - list of addons to be installed
+#   name - name of the addon
+#   url - download URL of the addon, it is the link under the Download button on ESOUI
+#   dependency - (default: true) determines, if the addon is a dependency.
+#                Set this to true, if you don't use the addon standalone, but only as a dependency for another addon
 [[addons]]
 name = "SkyShards"
-url = "https://www.esoui.com/downloads/download128-SkyShards"
-dependency = false
+url = "https://www.esoui.com/downloads/download128-SkyShards.html"
+
+[[addons]]
+name = "CustomCompassPins"
+url = "https://www.esoui.com/downloads/download185-CustomCompassPins.html"
+dependency = true
+
+[[addons]]
+name = "LibAddonMenu-2.0"
+url = "https://www.esoui.com/downloads/download7-LibAddonMenu.html"
+dependency = true
+
+[[addons]]
+name = "LibGPS"
+url = "https://www.esoui.com/downloads/download601-LibGPS2.html"
+dependency = true
+
+[[addons]]
+name = "LibMapPing"
+url = "https://www.esoui.com/downloads/download1302-LibMapPing.html"
+dependency = true
+
+[[addons]]
+name = "LibMapPins-1.0"
+url = "https://www.esoui.com/downloads/download563-LibMapPins.html"
+dependency = true
+
+[[addons]]
+name = "LibChatMessage"
+url = "https://www.esoui.com/downloads/download2382-LibChatMessage.html"
+dependency = true
+
+[[addons]]
+name = "LibDebugLogger"
+url = "https://www.esoui.com/downloads/download2275-LibDebugLogger.html"
+dependency = true
