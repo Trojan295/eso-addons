@@ -11,13 +11,16 @@ env:
 jobs:
   build:
     name: Build application
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrxi.runs_on }}
     strategy:
       matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-pc-windows-gnu
-          - x86_64-apple-darwin
+        include:
+          - target: x86_64-unknown-linux-gnu
+            runs_on: ubuntu-latest
+          - target: x86_64-pc-windows-msvc
+            runs_on: windows-latest
+          - target: x86_64-apple-darwin
+            runs_on: macos-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
