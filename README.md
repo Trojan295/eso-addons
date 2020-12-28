@@ -13,6 +13,9 @@ The list of addons you want to install, is put in a single configuration file. T
 
 ## Usage
 
+<a href="https://asciinema.org/a/381564" target="_blank"><img height="500px" src="https://asciinema.org/a/381564.svg" /></a>
+
+
 ### Configuration
 
 Create a config file in your user directory:
