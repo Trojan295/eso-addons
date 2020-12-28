@@ -6,8 +6,8 @@ use eso_addons::errors::*;
 
 #[derive(Clap)]
 #[clap(
-    version = "0.1.0",
-    author = "Damian C. <trojan295@gmail.com>",
+    version = crate_version!(),
+    author = crate_authors!(),
     about = "CLI tool for managing addon for The Elder Scrolls Online"
 )]
 struct Opts {
