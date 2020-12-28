@@ -1,6 +1,8 @@
 # ESO Addon Manager
 
-This repository holds a simple command line ESO Addon Manager written in Rust. With it you can manage addons from [esoui.com](https://www.esoui.com/). It uses a single config file to configure the desired addons.
+This repository holds a simple command line ESO Addon Manager written in Rust. With it you can manage addons from [esoui.com](https://www.esoui.com/).
+
+The list of addons you want to install is put in a single configuration file. This means you save and share your addon configuration with a single file!
 
 - [ESO Addon Manager](#eso-addon-manager)
   - [Usage](#usage)
@@ -47,3 +49,9 @@ To remove the addons, execute:
 ```
 eso-addons clean --remove
 ```
+
+### Backup and share your addon configuration
+
+Just backup the `eso-addons.toml` file and that's it! In case you have to restore the addons (e.g. after a OS reinstall), just use the backup `eso-addons.toml` and install the addons again.
+
+You can also share your addon configuration with friends using the same way, by sending them your `eso-addons.toml` file.
