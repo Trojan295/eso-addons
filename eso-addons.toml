@@ -4,7 +4,7 @@ addonDir = "/home/damian/Games/the-elder-scrolls-online-tamriel-unlimited/drive_
 # addons - list of addons to be installed
 #   name - name of the addon
 #   url - download URL of the addon, it is the link under the Download button on ESOUI
-#   dependency - (default: true) determines, if the addon is a dependency.
+#   dependency - (default: false) determines, if the addon is a dependency.
 #                Set this to true, if you don't use the addon standalone, but only as a dependency for another addon
 [[addons]]
 name = "SkyShards"
