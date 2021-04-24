@@ -176,7 +176,7 @@ impl Manager {
 
         let mut addon_path = self.addon_dir.to_owned();
         let addon_name = archive.by_index(0)?;
-        let addon_name = addon_name.name();
+        let addon_name = get_root_dir(&addon_name.mangled_name());
         addon_path.push(addon_name);
 
         let addon = self
@@ -227,6 +227,16 @@ fn find_first_in_node<T>(node: &Rc<Node>, f: &dyn Fn(&Rc<Node>) -> Option<T>) ->
             }
 
             None
+        }
+    }
+}
+
+fn get_root_dir(path: &Path) -> PathBuf {
+    match path.parent() {
+        None => path.to_owned(),
+        Some(parent) => match parent.to_str().unwrap() {
+            "" => path.to_owned(),
+            &_ => get_root_dir(parent)
         }
     }
 }
