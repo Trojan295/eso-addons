@@ -1,5 +1,7 @@
 # ESO Addon Manager
 
+[![Support Server](https://img.shields.io/discord/788487566310899722.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/B3ZGrcne)
+
 This repository holds a simple command line ESO Addon Manager written in Rust. With it you can manage addons from [esoui.com](https://www.esoui.com/).
 
 The list of addons you want to install, is put in a single configuration file. This means you can save and share your addon configuration with a single file!
