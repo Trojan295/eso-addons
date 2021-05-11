@@ -12,6 +12,7 @@ The list of addons you want to install, is put in a single configuration file. T
     - [Install and update addon](#install-and-update-addon)
     - [List addons, show missing or unused dependencies](#list-addons-show-missing-or-unused-dependencies)
     - [Remove addons](#remove-addons)
+    - [Backup and share your addon configuration](#backup-and-share-your-addon-configuration)
 
 ## Usage
 
