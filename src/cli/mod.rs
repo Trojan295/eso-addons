@@ -3,6 +3,7 @@ use dirs;
 use eso_addons::addons;
 use eso_addons::config;
 use eso_addons::errors::*;
+use std::path::PathBuf;
 
 #[derive(Clap)]
 #[clap(
@@ -25,6 +26,8 @@ enum SubCommand {
     Update(Update),
     #[clap(about = "Removes not managed and unused addons")]
     Clean(Clean),
+    #[clap(about = "Adds a new addon to the configuration")]
+    Add(Add),
 }
 
 #[derive(Clap)]
@@ -39,13 +42,23 @@ struct Clean {
     remove: bool,
 }
 
+#[derive(Clap)]
+struct Add {
+    addon_url: String,
+}
+
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let opts: Opts = Opts::parse();
 
     let home_dir = dirs::home_dir().unwrap();
-    let default_config_path = format!("{}/.eso-addons.toml", home_dir.display());
 
-    let config = config::parse_config(&opts.config.unwrap_or(default_config_path))?;
+    let default_config_filepath = home_dir.join(".eso-addons.toml");
+    let config_filepath = opts
+        .config
+        .map(|x| PathBuf::from(&x))
+        .unwrap_or(default_config_filepath);
+
+    let config = config::parse_config(&config_filepath)?;
 
     let addon_manager = addons::Manager::new(&config.addon_dir);
 
@@ -166,5 +179,6 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
             }
             Ok(())
         }
+        SubCommand::Add(_add) => Ok(()),
     }
 }

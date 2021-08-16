@@ -1,6 +1,6 @@
 [package]
 name = "eso-addons"
-version = "0.2.0"
+version = "0.2.2"
 authors = ["Damian Czaja <trojan295@gmail.com>"]
 edition = "2018"
 
@@ -16,7 +16,7 @@ path = "src/main.rs"
 toml = "0.4"
 serde = "1.0"
 serde_derive = "1.0"
-clap = "3.0.0-beta.2"
+clap = "3.0.0-beta.4"
 dirs = "3.0"
 simple-error = "0.2"
 regex = "1"
