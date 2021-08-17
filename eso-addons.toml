@@ -1,4 +1,7 @@
 # addonDir - location of the ESO addon directory
+# Windows users can convert their path by omitting the drive letter and using the full drive path like so:
+# "C:\Users\[account]\Documents\Elder Scrolls Online\live\AddOns" becomes "/Users/[account]/Documents/Elder Scrolls Online/live/AddOns"
+#
 addonDir = "/home/damian/Games/the-elder-scrolls-online-tamriel-unlimited/drive_c/users/damian/My Documents/Elder Scrolls Online/live/AddOns"
 
 # addons - list of addons to be installed
