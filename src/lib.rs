@@ -15,10 +15,10 @@ extern crate reqwest;
 extern crate tempfile;
 extern crate zip;
 
-pub mod errors;
-
 pub mod addons;
 pub mod config;
+pub mod errors;
+pub mod htmlparser;
 
 pub fn get_missing_dependencies(installed: &Vec<Addon>) -> impl Iterator<Item = String> {
     let mut missing = HashSet::new();

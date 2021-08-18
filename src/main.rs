@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate clap;
 extern crate dirs;
+#[macro_use]
+extern crate simple_error;
 
 mod cli;
 

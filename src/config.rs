@@ -5,7 +5,7 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct AddonEntry {
     pub name: String,
     pub url: Option<String>,
