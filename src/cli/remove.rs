@@ -7,7 +7,7 @@ use eso_addons::{
 
 #[derive(Clap)]
 pub struct RemoveCommand {
-    name: String,
+    name: Option<String>,
 }
 
 impl RemoveCommand {
@@ -17,11 +17,16 @@ impl RemoveCommand {
         config_filepath: &Path,
         addon_manager: &Manager,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        let addon_name = match &self.name {
+            Some(name) => name.to_owned(),
+            None => self.ask_for_addon_name(addon_manager)?,
+        };
+
         let idx = config
             .addons
             .iter()
-            .position(|entry| entry.name == self.name)
-            .ok_or(simple_error!("failed to find addon {}", &self.name))?;
+            .position(|entry| entry.name == addon_name)
+            .ok_or(simple_error!("failed to find addon {}", addon_name))?;
 
         let entry = config.addons.remove(idx);
 
@@ -32,8 +37,31 @@ impl RemoveCommand {
 
         config::save_config(config_filepath, config)?;
 
-        println!("Uninstalled and removed addon {}!", &entry.name);
+        println!("🗑 Uninstalled {}!", &entry.name);
 
         Ok(())
+    }
+
+    fn ask_for_addon_name(
+        &self,
+        addon_manager: &Manager,
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        let addons: Vec<String> = addon_manager
+            .get_addons()?
+            .iter()
+            .map(|addon| addon.name.clone())
+            .collect();
+
+        let question = requestty::Question::select("addon_name")
+            .message("Select addon to remove")
+            .choices(addons)
+            .build();
+
+        let answer = requestty::prompt_one(question)?;
+
+        answer
+            .as_list_item()
+            .map(|item| item.text.clone())
+            .ok_or(Box::new(simple_error!("no addon selected")))
     }
 }

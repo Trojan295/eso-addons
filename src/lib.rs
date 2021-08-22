@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use addons::Addon;
 use config::AddonEntry;
 
+extern crate colored;
 extern crate serde;
 extern crate serde_derive;
 extern crate toml;
@@ -11,6 +12,7 @@ extern crate simple_error;
 extern crate html5ever;
 extern crate markup5ever_rcdom;
 extern crate regex;
+extern crate requestty;
 extern crate reqwest;
 extern crate tempfile;
 extern crate zip;

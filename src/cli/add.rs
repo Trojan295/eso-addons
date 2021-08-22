@@ -11,7 +11,7 @@ use std::{error::Error, path::Path, rc::Rc};
 
 #[derive(Clap)]
 pub struct AddCommand {
-    addon_url: String,
+    addon_url: Option<String>,
     #[clap(
         short,
         long,
@@ -46,13 +46,18 @@ impl AddCommand {
 
         config::save_config(config_filepath, &cfg)?;
 
-        println!("Added addon {}!", &entry.name);
+        println!("🎊 Installed {}!", &entry.name);
 
         Ok(())
     }
 
     pub fn get_entry(&self) -> Result<AddonEntry, Box<dyn Error>> {
-        let mut response = reqwest::blocking::get(&self.addon_url)?;
+        let addon_url = match &self.addon_url {
+            Some(url) => url.clone(),
+            None => self.ask_for_addon_url()?,
+        };
+
+        let mut response = reqwest::blocking::get(&addon_url)?;
 
         let opts = ParseOpts {
             tree_builder: TreeBuilderOpts {
@@ -67,13 +72,25 @@ impl AddCommand {
             .read_from(&mut response)?;
 
         let addon_name = get_addon_name(&dom).ok_or(simple_error!("failed to get addon name"))?;
-        let download_url = get_download_url(&self.addon_url);
+        let download_url = get_download_url(&addon_url);
 
         Ok(AddonEntry {
             name: addon_name, // TODO: read correct addon name
             url: download_url,
             dependency: false,
         })
+    }
+
+    fn ask_for_addon_url(&self) -> Result<String, Box<dyn std::error::Error>> {
+        let question = requestty::Question::input("addon_url")
+            .message("URL of the addon on esoui.com")
+            .build();
+
+        let answer = requestty::prompt_one(question)?;
+        answer
+            .as_string()
+            .map(|x| x.to_owned())
+            .ok_or(Box::new(simple_error!("URL not provided")))
     }
 }
 
