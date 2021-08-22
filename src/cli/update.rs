@@ -1,3 +1,4 @@
+use colored::*;
 use eso_addons::{addons::Manager, config::Config, errors::ErrorChain};
 
 #[derive(Clap)]
@@ -23,16 +24,17 @@ impl UpdateCommand {
 
             if let Some(installed) = installed {
                 if installed.name == addon.name {
-                    println!("{} installed", addon.name);
+                    println!("{} Installed {}!", "✔".green(), addon.name);
                 } else {
                     println!(
-                        "WARNING: {} is called {} is config file. Verify the addon name in the config file.",
+                        // TODO: change the name in the config automatically
+                        "⚠ Installed {}, but is called {} is config file. Verify the addon name in the config file.",
                         installed.name, addon.name
                     );
                 }
             } else {
                 println!(
-                    "WARNING: {} is set to be manually installed, but not present",
+                    "⚠ {} is set to be manually installed, but not present",
                     addon.name
                 )
             }
@@ -43,7 +45,10 @@ impl UpdateCommand {
             eso_addons::get_missing_dependencies(&installed_addons).collect();
 
         if missing_addons.len() > 0 {
-            println!("\nThere are missing addons:");
+            println!(
+                "\n{} There are missing dependencies! Please install the following addons to resolve the dependencies:",
+                "⚠".red()
+            );
 
             for missing in eso_addons::get_missing_dependencies(&installed_addons) {
                 println!("- {}", missing);
