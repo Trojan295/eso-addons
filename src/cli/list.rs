@@ -47,7 +47,7 @@ impl ListCommand {
                     .map(|x| x.push("INSTALLED".green().to_string())),
                 None => addon_status
                     .get_mut(&addon.name)
-                    .map(|x| x.push("NOT INSTALLED".truecolor(255, 255, 0).to_string())),
+                    .map(|x| x.push("NOT INSTALLED".truecolor(200, 200, 0).to_string())),
             };
         }
 
@@ -67,7 +67,7 @@ impl ListCommand {
 
             addon_status
                 .get_mut(&addon)
-                .map(|x| x.push("UNUSED".truecolor(100, 100, 100).to_string()));
+                .map(|x| x.push("UNUSED".truecolor(130, 130, 130).to_string()));
         }
 
         for (k, v) in addon_status {
