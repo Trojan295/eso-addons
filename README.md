@@ -4,7 +4,7 @@
 
 This repository holds a simple command line ESO Addon Manager written in Rust. With it you can manage addons from [esoui.com](https://www.esoui.com/).
 
-The list of addons you want to install, is put in a single configuration file. This means you can save and share your addon configuration with a single file!
+The list of addons you want to install is put in a single configuration file. This means you can save and share your addon configuration with a single file!
 
 - [ESO Addon Manager](#eso-addon-manager)
   - [Usage](#usage)
@@ -16,48 +16,79 @@ The list of addons you want to install, is put in a single configuration file. T
 
 ## Usage
 
-<a href="https://asciinema.org/a/381564" target="_blank"><img height="500px" src="https://asciinema.org/a/381564.svg" /></a>
-
+<a href="https://asciinema.org/a/431685" target="_blank"><img src="https://asciinema.org/a/431685.svg" /></a>
 
 ### Configuration
 
-Create a config file in your user directory:
-- Linux - `$HOME/.eso-addons.toml`
+Run:
 
-For an example config see [eso-addons.toml](./eso-addons.toml).
-
-### Install and update addon
-
-To install or update addons, execute:
-```
-eso-addons update
-```
-
-### List addons, show missing or unused dependencies
-
-To list the installation status of addons and show missing or unused dependencies, execute:
-```
+```bash
 eso-addons list
+```
+
+to generate the config file. The config file is in your user directory:
+- Linux - `/home/<username>/.eso-addons.toml`
+- Windows - `C:/Users/<username>/.eso-addons.toml`
+
+If necessary, edit the `addonDir` parameter in the config file to the directory, where your ESO addons should be placed:
+```toml
+addonDir = "/home/damian/drive_c/users/user/My Documents/Elder Scrolls Online/live/AddOns" # edit this, if needed
+```
+
+### Install new addon
+
+To install a new addon use the `eso-addons add` command:
+```bash
+❯ eso-addons add
+✔ URL of the addon on esoui.com · https://www.esoui.com/downloads/info1536-ActionDurationReminder.html
+✔ Is addon only a dependency? · No
+🎊 Installed ActionDurationReminder!
+```
+
+### Update installed addons
+
+In case you want to update the addons to the newest version execute `eso-addons update`:
+```bash
+❯ eso-addons update
+✔ Updated ActionDurationReminder!
+✔ Updated LibAddonMenu-2.0!
+```
+
+### List addons, show missing or unused addon dependencies
+
+To list the status of all installed addons, show missing or unused dependencies use `eso-addons list`
+```
+❯ eso-addons list
++------------------------+-----------+
+| Name                   | Status    |
++------------------------+-----------+
+| ActionDurationReminder | INSTALLED |
+| LibAddonMenu-2.0       | MISSING   |
++------------------------+-----------+
 ```
 
 ### Remove addons
 
-The Addon Manager can remove addons, which are present in the ESO addon dir, but not listed in the configuration file.
-
-It can also detect addons, which are an unused dependency, i.e. you installed addon A, because it was a dependency of B. When you remove B, then `eso-addons` will detect that A is not required anymore and can be removed.
-
-To get the list of addons to be removed, execute:
-```
-eso-addons clean
+To remove an addon use `eso-addons remove`:
+```bash
+❯ eso-addons remove
+✔ Select addon to remove · ActionDurationReminder
+✔ Uninstalled ActionDurationReminder!
 ```
 
-To remove the addons, execute:
-```
-eso-addons clean --remove
+There is also the `eso-addons clean` command, which can be used to remove addons, which are not managed by `eso-addons` (i.e. you installed them manually):
+```bash
+❯ eso-addons clean
+🗑 Addons to remove:
+- LibAddonMenu-2.0
+
+✔ Do you want to remove these addons? · Yes
+
+✓ LibAddonMenu-2.0 removed!
 ```
 
 ### Backup and share your addon configuration
 
-Just backup the `eso-addons.toml` file and that's it! In case you have to restore the addons (e.g. after a OS reinstall), just use the backup `eso-addons.toml` and install the addons again.
+Just backup the `eso-addons.toml` file and that's it! In case you have to restore the addons (e.g. after an OS reinstall), just put the backuped `eso-addons.toml` in [user directory](#configuration) and run `eso-addons update` to install all addons.
 
-You can also share your addon configuration with friends using the same way, by sending them your `eso-addons.toml` file.
+You can also share your addon configuration with other people by sending them your `eso-addons.toml` file.

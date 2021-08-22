@@ -3,12 +3,14 @@
 # "C:\Users\[account]\Documents\Elder Scrolls Online\live\AddOns" becomes "/Users/[account]/Documents/Elder Scrolls Online/live/AddOns"
 #
 addonDir = "/home/damian/Games/the-elder-scrolls-online-tamriel-unlimited/drive_c/users/damian/My Documents/Elder Scrolls Online/live/AddOns"
+# example for Windows:
+#addonDir = "C:/Users/Administrator/My Documents/Elder Scrolls Online/live/AddOns"
 
-# addons - list of addons to be installed
-#   name - name of the addon
-#   url - download URL of the addon, it is the link under the Download button on ESOUI
-#   dependency - (default: false) determines, if the addon is a dependency.
-#                Set this to true, if you don't use the addon standalone, but only as a dependency for another addon
+# addons - List of addons to be installed
+#   name - Name of the addon
+#   url - Download URL of the addon, it is the link under the Download button on ESOUI.
+#   dependency - (default: false) Determines, if the addon is a dependency.
+#                Set this to true, if you don't use the addon standalone, but only as a dependency for another addon.
 [[addons]]
 name = "SkyShards"
 url = "https://www.esoui.com/downloads/download128-SkyShards.html"

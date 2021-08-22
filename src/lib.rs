@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use addons::Addon;
 use config::AddonEntry;
 
+extern crate colored;
 extern crate serde;
 extern crate serde_derive;
 extern crate toml;
@@ -11,14 +12,15 @@ extern crate simple_error;
 extern crate html5ever;
 extern crate markup5ever_rcdom;
 extern crate regex;
+extern crate requestty;
 extern crate reqwest;
 extern crate tempfile;
 extern crate zip;
 
-pub mod errors;
-
 pub mod addons;
 pub mod config;
+pub mod errors;
+pub mod htmlparser;
 
 pub fn get_missing_dependencies(installed: &Vec<Addon>) -> impl Iterator<Item = String> {
     let mut missing = HashSet::new();
@@ -39,10 +41,10 @@ pub fn get_missing_dependencies(installed: &Vec<Addon>) -> impl Iterator<Item = 
     missing.into_iter()
 }
 
-pub fn get_unmanaged_addons<'a>(
-    desired: &Vec<AddonEntry>,
-    installed: &'a Vec<Addon>,
-) -> Vec<&'a Addon> {
+pub fn get_unmanaged_addons<'a, I>(desired: &Vec<AddonEntry>, installed: I) -> Vec<&'a Addon>
+where
+    I: Iterator<Item = &'a Addon>,
+{
     let mut result = vec![];
 
     let mut desired_map = HashSet::new();
@@ -50,7 +52,7 @@ pub fn get_unmanaged_addons<'a>(
         desired_map.insert(addon.name.clone());
     }
 
-    for addon in installed.iter() {
+    for addon in installed {
         if !desired_map.contains(&addon.name) {
             result.push(addon);
         }

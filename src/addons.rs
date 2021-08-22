@@ -1,3 +1,5 @@
+use crate::htmlparser;
+
 use super::errors::ErrorChain;
 use html5ever::tendril::TendrilSink;
 use html5ever::{self, tree_builder::TreeBuilderOpts, ParseOpts};
@@ -188,7 +190,7 @@ impl Manager {
 }
 
 fn get_cdn_download_link(dom: &RcDom) -> Option<String> {
-    let node = find_first_in_node(&dom.document, &|node: &Rc<Node>| match &node.data {
+    let node = htmlparser::find_first_in_node(&dom.document, &|node: &Rc<Node>| match &node.data {
         NodeData::Element {
             name,
             attrs,
@@ -215,28 +217,12 @@ fn get_cdn_download_link(dom: &RcDom) -> Option<String> {
     }
 }
 
-fn find_first_in_node<T>(node: &Rc<Node>, f: &dyn Fn(&Rc<Node>) -> Option<T>) -> Option<T> {
-    match f(node) {
-        Some(x) => Some(x),
-        None => {
-            for child in node.children.borrow().iter() {
-                match find_first_in_node(child, f) {
-                    Some(x) => return Some(x),
-                    None => {}
-                }
-            }
-
-            None
-        }
-    }
-}
-
 fn get_root_dir(path: &Path) -> PathBuf {
     match path.parent() {
         None => path.to_owned(),
         Some(parent) => match parent.to_str().unwrap() {
             "" => path.to_owned(),
-            &_ => get_root_dir(parent)
-        }
+            &_ => get_root_dir(parent),
+        },
     }
 }
