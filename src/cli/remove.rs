@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use colored::*;
+
 use eso_addons::{
     addons::Manager,
     config::{self, Config},
@@ -37,7 +39,7 @@ impl RemoveCommand {
 
         config::save_config(config_filepath, config)?;
 
-        println!("🗑 Uninstalled {}!", &entry.name);
+        println!("{} Uninstalled {}!", "✔".green(), &entry.name);
 
         Ok(())
     }

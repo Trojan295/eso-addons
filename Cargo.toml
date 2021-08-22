@@ -1,7 +1,7 @@
 [package]
 name = "eso-addons"
-version = "0.2.2"
-authors = ["Damian Czaja <trojan295@gmail.com>"]
+version = "0.3.0"
+authors = ["Damian Czaja <trojan295@protonmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

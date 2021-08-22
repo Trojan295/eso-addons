@@ -41,10 +41,10 @@ pub fn get_missing_dependencies(installed: &Vec<Addon>) -> impl Iterator<Item = 
     missing.into_iter()
 }
 
-pub fn get_unmanaged_addons<'a>(
-    desired: &Vec<AddonEntry>,
-    installed: &'a Vec<Addon>,
-) -> Vec<&'a Addon> {
+pub fn get_unmanaged_addons<'a, I>(desired: &Vec<AddonEntry>, installed: I) -> Vec<&'a Addon>
+where
+    I: Iterator<Item = &'a Addon>,
+{
     let mut result = vec![];
 
     let mut desired_map = HashSet::new();
@@ -52,7 +52,7 @@ pub fn get_unmanaged_addons<'a>(
         desired_map.insert(addon.name.clone());
     }
 
-    for addon in installed.iter() {
+    for addon in installed {
         if !desired_map.contains(&addon.name) {
             result.push(addon);
         }

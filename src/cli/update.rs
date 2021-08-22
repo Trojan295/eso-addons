@@ -24,7 +24,7 @@ impl UpdateCommand {
 
             if let Some(installed) = installed {
                 if installed.name == addon.name {
-                    println!("{} Installed {}!", "✔".green(), addon.name);
+                    println!("{} Updated {}!", "✔".green(), addon.name);
                 } else {
                     println!(
                         // TODO: change the name in the config automatically

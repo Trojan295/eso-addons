@@ -17,12 +17,12 @@ pub struct AddCommand {
         long,
         about = "Indicate, if the addon is only a dependency for another addon"
     )]
-    dependency: bool,
+    dependency: Option<bool>,
 }
 
 impl AddCommand {
     pub fn run(
-        &self,
+        &mut self,
         cfg: &mut Config,
         config_filepath: &Path,
         addon_manager: &Manager,
@@ -51,11 +51,14 @@ impl AddCommand {
         Ok(())
     }
 
-    pub fn get_entry(&self) -> Result<AddonEntry, Box<dyn Error>> {
-        let addon_url = match &self.addon_url {
-            Some(url) => url.clone(),
-            None => self.ask_for_addon_url()?,
-        };
+    pub fn get_entry(&mut self) -> Result<AddonEntry, Box<dyn Error>> {
+        if self.addon_url.is_none() {
+            self.ask_for_fields()
+                .chain_err(&format!("failed to get parameters"))?;
+        }
+
+        let addon_url = self.addon_url.clone().ok_or("missing addon URL")?;
+        let dependency = self.dependency.unwrap_or(false);
 
         let mut response = reqwest::blocking::get(&addon_url)?;
 
@@ -75,22 +78,37 @@ impl AddCommand {
         let download_url = get_download_url(&addon_url);
 
         Ok(AddonEntry {
-            name: addon_name, // TODO: read correct addon name
+            name: addon_name,
             url: download_url,
-            dependency: false,
+            dependency: dependency,
         })
     }
 
-    fn ask_for_addon_url(&self) -> Result<String, Box<dyn std::error::Error>> {
-        let question = requestty::Question::input("addon_url")
+    fn ask_for_fields(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let mut questions = vec![requestty::Question::input("addon_url")
             .message("URL of the addon on esoui.com")
-            .build();
+            .build()];
 
-        let answer = requestty::prompt_one(question)?;
-        answer
-            .as_string()
-            .map(|x| x.to_owned())
-            .ok_or(Box::new(simple_error!("URL not provided")))
+        if self.dependency.is_none() {
+            questions.push(
+                requestty::Question::confirm("dependency")
+                    .message("Is addon only a dependency?")
+                    .default(false)
+                    .build(),
+            );
+        }
+
+        let answers = requestty::prompt(questions)?;
+
+        if let Some(addon_url) = answers.get("addon_url") {
+            self.addon_url = addon_url.as_string().map(|x| x.to_owned());
+        };
+
+        if let Some(dependency) = answers.get("dependency") {
+            self.dependency = dependency.as_bool();
+        };
+
+        Ok(())
     }
 }
 
@@ -122,7 +140,7 @@ fn get_addon_name(dom: &RcDom) -> Option<String> {
 }
 
 fn get_download_url(addon_url: &str) -> Option<String> {
-    let re = Regex::new(r"^https://www.esoui.com/downloads/info(\d+)-(.+)\.html$").unwrap();
+    let re = Regex::new(r"^https://.*esoui.com/downloads/info(\d+)-(.+)\.html$").unwrap();
     re.captures(addon_url).map(|captures| {
         format!(
             "https://www.esoui.com/downloads/download{}-{}.html",

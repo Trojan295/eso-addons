@@ -25,15 +25,15 @@ struct Opts {
 
 #[derive(Clap)]
 enum SubCommand {
-    #[clap(about = "Lists status of installed addons")]
+    #[clap(about = "List status of addons")]
     List(list::ListCommand),
-    #[clap(about = "Installs and updates addons")]
+    #[clap(about = "Update addons")]
     Update(update::UpdateCommand),
-    #[clap(about = "Uninstall not managed and unused addons")]
+    #[clap(about = "Uninstall not managed addons")]
     Clean(clean::CleanCommand),
-    #[clap(about = "Adds a new addon to the configuration")]
+    #[clap(about = "Add a new addon")]
     Add(add::AddCommand),
-    #[clap(about = "Uninstall and remove addon from config file")]
+    #[clap(about = "Uninstall addon")]
     Remove(remove::RemoveCommand),
 }
 
@@ -55,8 +55,8 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     match opts.subcmd {
         SubCommand::List(list) => list.run(&addon_manager, &config),
         SubCommand::Update(update) => update.run(&config, &addon_manager),
-        SubCommand::Clean(clean) => clean.run(&config, &addon_manager),
-        SubCommand::Add(add) => add.run(&mut config, &config_filepath, &addon_manager),
+        SubCommand::Clean(mut clean) => clean.run(&config, &addon_manager),
+        SubCommand::Add(mut add) => add.run(&mut config, &config_filepath, &addon_manager),
         SubCommand::Remove(remove) => remove.run(&mut config, &config_filepath, &addon_manager),
     }
 }
