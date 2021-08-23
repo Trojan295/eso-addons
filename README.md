@@ -20,8 +20,7 @@ The list of addons you want to install is put in a single configuration file. Th
 
 ## Usage
 
-[![asciicast](https://asciinema.org/a/9gq2aq7BabZYz1G9B95RebSvG.svg)](https://asciinema.org/a/9gq2aq7BabZYz1G9B95RebSvG?autoplay=1&speed=2)
-
+[![asciicast](https://asciinema.org/a/431685.svg)](https://asciinema.org/a/431685)
 ### Configuration
 
 Run:
