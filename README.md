@@ -6,18 +6,21 @@ This repository holds a simple command line ESO Addon Manager written in Rust. W
 
 The list of addons you want to install is put in a single configuration file. This means you can save and share your addon configuration with a single file!
 
-- [ESO Addon Manager](#eso-addon-manager)
-  - [Usage](#usage)
-    - [Configuration](#configuration)
-    - [Install and update addon](#install-and-update-addon)
-    - [List addons, show missing or unused dependencies](#list-addons-show-missing-or-unused-dependencies)
-    - [Remove addons](#remove-addons)
-    - [Backup and share your addon configuration](#backup-and-share-your-addon-configuration)
+<!-- toc -->
+
+- [Usage](#usage)
+    * [Configuration](#configuration)
+    * [Install new addon](#install-new-addon)
+    * [Update installed addons](#update-installed-addons)
+    * [List addons, show missing or unused addon dependencies](#list-addons-show-missing-or-unused-addon-dependencies)
+    * [Remove addons](#remove-addons)
+    * [Backup and share your addon configuration](#backup-and-share-your-addon-configuration)
+
+<!-- tocstop -->
 
 ## Usage
 
-<a href="https://asciinema.org/a/431685" target="_blank"><img src="https://asciinema.org/a/431685.svg" /></a>
-
+[![asciicast](https://asciinema.org/a/431685.svg)](https://asciinema.org/a/431685)
 ### Configuration
 
 Run:

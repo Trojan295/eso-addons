@@ -45,7 +45,7 @@ jobs:
           use-cross: true
           command: test
           args: --release --verbose --target=${{ matrix.target }}
-        
+
       - name: Rename binary file
         shell: bash
         run: |
