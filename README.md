@@ -20,7 +20,7 @@ The list of addons you want to install is put in a single configuration file. Th
 
 ## Usage
 
-<script id="asciicast-431685" src="https://asciinema.org/a/431685.js" async></script>
+[![asciicast](https://asciinema.org/a/9gq2aq7BabZYz1G9B95RebSvG.svg)](https://asciinema.org/a/9gq2aq7BabZYz1G9B95RebSvG?autoplay=1&speed=2)
 
 ### Configuration
 
