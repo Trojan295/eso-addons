@@ -1,7 +1,7 @@
 use colored::*;
 use eso_addons::{addons::Manager, config::Config, errors::ErrorChain};
 
-#[derive(Clap)]
+#[derive(Parser)]
 pub struct UpdateCommand {}
 
 impl UpdateCommand {

@@ -1,4 +1,4 @@
-use clap::Clap;
+use clap::Parser;
 use dirs;
 use eso_addons::addons;
 use eso_addons::config;
@@ -10,7 +10,7 @@ mod list;
 mod remove;
 mod update;
 
-#[derive(Clap)]
+#[derive(Parser)]
 #[clap(
     version = crate_version!(),
     author = crate_authors!(),
@@ -23,7 +23,7 @@ struct Opts {
     subcmd: SubCommand,
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 enum SubCommand {
     #[clap(about = "List status of addons")]
     List(list::ListCommand),

@@ -9,7 +9,7 @@ use markup5ever_rcdom::{Node, NodeData, RcDom};
 use regex::Regex;
 use std::{error::Error, path::Path, rc::Rc};
 
-#[derive(Clap)]
+#[derive(Parser)]
 pub struct AddCommand {
     addon_url: Option<String>,
     #[clap(

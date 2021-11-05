@@ -5,7 +5,7 @@ use eso_addons::addons::Manager;
 use eso_addons::config::Config;
 use prettytable::{format, Table};
 
-#[derive(Clap)]
+#[derive(Parser)]
 pub struct ListCommand {}
 
 impl ListCommand {

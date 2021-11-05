@@ -3,7 +3,7 @@ use eso_addons::{
     addons::{Addon, Manager},
     config::Config,
 };
-#[derive(Clap)]
+#[derive(Parser)]
 pub struct CleanCommand {
     #[clap(long)]
     remove: Option<bool>,

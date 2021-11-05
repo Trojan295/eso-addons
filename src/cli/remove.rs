@@ -7,7 +7,7 @@ use eso_addons::{
     config::{self, Config},
 };
 
-#[derive(Clap)]
+#[derive(Parser)]
 pub struct RemoveCommand {
     name: Option<String>,
 }

@@ -46,7 +46,9 @@ impl Manager {
                 continue;
             }
 
-            let addon = self.read_addon(&path)?;
+            let addon = self
+                .read_addon(&path)
+                .chain_err(&format!("while reading addon {:?}", &path))?;
             addons.push(addon);
         }
 
@@ -68,12 +70,7 @@ impl Manager {
             .to_str()
             .ok_or(simple_error!("failed to get addon name"))?;
 
-        let txt_filename = PathBuf::from(format!("{}.txt", addon_name));
-
-        let mut txt_file = path.to_owned();
-        txt_file.push(txt_filename);
-        let file = File::open(txt_file)?;
-
+        let file = self.open_addon_metadata_file(path, addon_name)?;
         let re = Regex::new(r"## (.*): (.*)").unwrap();
 
         let mut addon = Addon {
@@ -186,6 +183,30 @@ impl Manager {
             .chain_err("while reading addon")?;
 
         Ok(addon)
+    }
+
+    fn open_addon_metadata_file(
+        &self,
+        path: &Path,
+        addon_name: &str,
+    ) -> Result<File, Box<dyn Error>> {
+        let mut filepath = path.to_owned();
+        let mut filepath_lowercase = path.to_owned();
+
+        let filename = PathBuf::from(format!("{}.txt", addon_name));
+        let filename_lowercase = PathBuf::from(format!("{}.txt", addon_name.to_lowercase()));
+
+        filepath.push(filename);
+        filepath_lowercase.push(filename_lowercase);
+
+        if filepath.exists() {
+            File::open(&filepath).chain_err(&format!("failed to open {:?}", &filepath))
+        } else if filepath_lowercase.exists() {
+            File::open(&filepath_lowercase)
+                .chain_err(&format!("failed to open {:?}", &filepath_lowercase))
+        } else {
+            Err("metadata file is missing".into())
+        }
     }
 }
 
