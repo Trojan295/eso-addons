@@ -3,7 +3,7 @@ use eso_addons::{
     addons::{Addon, Manager},
     config::Config,
 };
-#[derive(Clap)]
+#[derive(Parser)]
 pub struct CleanCommand {
     #[clap(long)]
     remove: Option<bool>,
@@ -16,9 +16,10 @@ impl CleanCommand {
         addon_manager: &Manager,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let desired_addons = &config.addons;
-        let installed_addons = addon_manager.get_addons()?;
+        let installed_addons_list = addon_manager.get_addons()?;
 
-        let unmanaged = eso_addons::get_unmanaged_addons(&desired_addons, installed_addons.iter());
+        let unmanaged =
+            eso_addons::get_unmanaged_addons(&desired_addons, installed_addons_list.addons.iter());
 
         if unmanaged.len() > 0 {
             match self.remove {

@@ -7,7 +7,7 @@ use eso_addons::{
     config::{self, Config},
 };
 
-#[derive(Clap)]
+#[derive(Parser)]
 pub struct RemoveCommand {
     name: Option<String>,
 }
@@ -50,6 +50,7 @@ impl RemoveCommand {
     ) -> Result<String, Box<dyn std::error::Error>> {
         let addons: Vec<String> = addon_manager
             .get_addons()?
+            .addons
             .iter()
             .map(|addon| addon.name.clone())
             .collect();
