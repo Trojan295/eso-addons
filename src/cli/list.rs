@@ -36,12 +36,16 @@ impl ListCommand {
         table.set_titles(row!["Name".bold(), "Status".bold()]);
 
         let desired_addons = &config.addons;
-        let installed_addons = addon_manager.get_addons()?;
+        let installed_addons_list = addon_manager.get_addons()?;
 
         for addon in desired_addons {
             addon_status.insert(addon.name.clone(), vec![]);
 
-            match installed_addons.iter().find(|a| a.name == addon.name) {
+            match installed_addons_list
+                .addons
+                .iter()
+                .find(|a| a.name == addon.name)
+            {
                 Some(addon) => addon_status
                     .get_mut(&addon.name)
                     .map(|x| x.push("INSTALLED".green().to_string())),
@@ -51,7 +55,8 @@ impl ListCommand {
             };
         }
 
-        for addon in eso_addons::get_missing_dependencies(&installed_addons).into_iter() {
+        for addon in eso_addons::get_missing_dependencies(&installed_addons_list.addons).into_iter()
+        {
             if !addon_status.contains_key(&addon) {
                 addon_status.insert(addon.clone(), vec![]);
             }
@@ -60,7 +65,9 @@ impl ListCommand {
                 .get_mut(&addon)
                 .map(|x| x.push("MISSING".red().to_string()));
         }
-        for addon in eso_addons::get_unused_dependencies(&installed_addons, desired_addons) {
+        for addon in
+            eso_addons::get_unused_dependencies(&installed_addons_list.addons, desired_addons)
+        {
             if !addon_status.contains_key(&addon) {
                 addon_status.insert(addon.clone(), vec![]);
             }
@@ -76,6 +83,11 @@ impl ListCommand {
         }
 
         table.printstd();
+
+        for err in installed_addons_list.errors {
+            let msg = format!("WARNING: {}", err);
+            println!("{}", msg.yellow());
+        }
 
         Ok(())
     }

@@ -16,6 +16,11 @@ pub struct Addon {
     pub depends_on: Vec<String>,
 }
 
+pub struct AddonList {
+    pub addons: Vec<Addon>,
+    pub errors: Vec<Box<dyn Error>>,
+}
+
 pub struct Manager {
     addon_dir: PathBuf,
 }
@@ -32,11 +37,14 @@ impl Manager {
         Manager { addon_dir: path }
     }
 
-    pub fn get_addons(&self) -> Result<Vec<Addon>, Box<dyn Error>> {
+    pub fn get_addons(&self) -> Result<AddonList, Box<dyn Error>> {
         let read_dir = fs::read_dir(&self.addon_dir)
             .chain_err(&format!("while listing addon dir {:?}", self.addon_dir))?;
 
-        let mut addons = vec![];
+        let mut addon_list = AddonList {
+            addons: vec![],
+            errors: vec![],
+        };
 
         for entry in read_dir {
             let entry = entry?;
@@ -46,18 +54,20 @@ impl Manager {
                 continue;
             }
 
-            let addon = self
-                .read_addon(&path)
-                .chain_err(&format!("while reading addon {:?}", &path))?;
-            addons.push(addon);
+            match self.read_addon(&path) {
+                Ok(addon) => addon_list.addons.push(addon),
+                Err(err) => addon_list
+                    .errors
+                    .push(format!("while reading addon {:?}: {}", &path, err).into()),
+            }
         }
 
-        Ok(addons)
+        Ok(addon_list)
     }
 
     pub fn get_addon(&self, name: &str) -> Result<Option<Addon>, Box<dyn Error>> {
-        let addons = self.get_addons().chain_err("while getting addons")?;
-        let found = addons.into_iter().find(|x| x.name == name);
+        let addon_list = self.get_addons().chain_err("while getting addons")?;
+        let found = addon_list.addons.into_iter().find(|x| x.name == name);
         Ok(found)
     }
 

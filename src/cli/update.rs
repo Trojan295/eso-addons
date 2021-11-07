@@ -40,9 +40,9 @@ impl UpdateCommand {
             }
         }
 
-        let installed_addons = addon_manager.get_addons()?;
+        let installed_addons_list = addon_manager.get_addons()?;
         let missing_addons: Vec<String> =
-            eso_addons::get_missing_dependencies(&installed_addons).collect();
+            eso_addons::get_missing_dependencies(&installed_addons_list.addons).collect();
 
         if missing_addons.len() > 0 {
             println!(
@@ -50,12 +50,13 @@ impl UpdateCommand {
                 "⚠".red()
             );
 
-            for missing in eso_addons::get_missing_dependencies(&installed_addons) {
+            for missing in eso_addons::get_missing_dependencies(&installed_addons_list.addons) {
                 println!("- {}", missing);
             }
         }
 
-        let unused_addons = eso_addons::get_unused_dependencies(&installed_addons, desired_addons);
+        let unused_addons =
+            eso_addons::get_unused_dependencies(&installed_addons_list.addons, desired_addons);
 
         if unused_addons.len() > 0 {
             println!("\nThere are unused dependencies:");
