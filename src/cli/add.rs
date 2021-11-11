@@ -17,7 +17,8 @@ pub struct AddCommand {
         long,
         about = "Indicate, if the addon is only a dependency for another addon"
     )]
-    dependency: Option<bool>,
+    #[clap(short)]
+    dependency: bool,
 }
 
 impl AddCommand {
@@ -58,7 +59,7 @@ impl AddCommand {
         }
 
         let addon_url = self.addon_url.clone().ok_or("missing addon URL")?;
-        let dependency = self.dependency.unwrap_or(false);
+        let dependency = self.dependency;
 
         let mut response = reqwest::blocking::get(&addon_url)?;
 
@@ -85,18 +86,15 @@ impl AddCommand {
     }
 
     fn ask_for_fields(&mut self) -> Result<(), Box<dyn std::error::Error>> {
-        let mut questions = vec![requestty::Question::input("addon_url")
-            .message("URL of the addon on esoui.com")
-            .build()];
-
-        if self.dependency.is_none() {
-            questions.push(
-                requestty::Question::confirm("dependency")
-                    .message("Is addon only a dependency?")
-                    .default(false)
-                    .build(),
-            );
-        }
+        let questions = vec![
+            requestty::Question::input("addon_url")
+                .message("URL of the addon on esoui.com")
+                .build(),
+            requestty::Question::confirm("dependency")
+                .message("Is addon only a dependency?")
+                .default(false)
+                .build(),
+        ];
 
         let answers = requestty::prompt(questions)?;
 
@@ -105,7 +103,7 @@ impl AddCommand {
         };
 
         if let Some(dependency) = answers.get("dependency") {
-            self.dependency = dependency.as_bool();
+            self.dependency = dependency.as_bool().unwrap_or(false);
         };
 
         Ok(())
