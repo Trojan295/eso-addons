@@ -10,6 +10,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  PROJECT_NAME: ${{ github.event.repository.name }}
 
 jobs:
   build:
@@ -49,3 +50,15 @@ jobs:
           use-cross: true
           command: test
           args: --verbose --target=${{ matrix.target }}
+
+      - name: Rename binary file
+        shell: bash
+        run: |
+          origin="$(find target/${{ matrix.target }}/debug -maxdepth 1 -perm -111 -iname "${{ env.PROJECT_NAME }}*")"
+          dest="${origin/${{ env.PROJECT_NAME}}/${{ env.PROJECT_NAME}}-${{ matrix.target}}}"
+          mv "$origin" "$dest"
+      - name: Upload binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: eso-addons-${{ matrix.target }}
+          path: ./target/${{ matrix.target }}/debug/${{ env.PROJECT_NAME }}-${{ matrix.target }}*
