@@ -70,7 +70,7 @@ fn get_initial_config() -> Config {
     let addon_dir = home_dir.join("Documents/Elder Scrolls Online/live/AddOns");
 
     Config {
-        addon_dir: addon_dir.display().to_string(),
+        addon_dir: addon_dir,
         addons: vec![],
     }
 }
@@ -90,7 +90,7 @@ fn get_initial_config() -> Config {
 #[cfg(target_os = "macos")]
 fn get_initial_config() -> Config {
     Config {
-        addon_dir: String::from(""),
+        addon_dir: PathBuf::new(),
         addons: vec![],
     }
 }
