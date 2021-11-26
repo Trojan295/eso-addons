@@ -15,6 +15,7 @@ extern crate regex;
 extern crate requestty;
 extern crate reqwest;
 extern crate tempfile;
+extern crate walkdir;
 extern crate zip;
 
 pub mod addons;
