@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use colored::*;
 use eso_addons::addons::Manager;
@@ -16,7 +16,7 @@ impl ListCommand {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut table = Table::new();
 
-        let mut addon_status: HashMap<String, Vec<String>> = HashMap::new();
+        let mut addon_status: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
         let format = format::FormatBuilder::new()
             .column_separator('|')
