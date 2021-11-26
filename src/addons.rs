@@ -51,12 +51,15 @@ impl Manager {
             let entry_dir = entry?;
             let file_path = entry_dir.path();
 
-            let file_path_str = file_path.as_os_str().to_str();
+            let file_name = entry_dir.file_name();
+            let parent_dir_name = file_path.parent().map(|f| f.file_name()).flatten();
 
-            match file_path_str {
+            match parent_dir_name {
                 None => continue,
-                Some(path) => {
-                    if !re.is_match(path) {
+                Some(parent_dir_name) => {
+                    let mut name = parent_dir_name.to_os_string();
+                    name.push(".txt");
+                    if name != file_name {
                         continue;
                     }
                 }
