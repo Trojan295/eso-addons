@@ -3,7 +3,7 @@ use serde::ser::SerializeStruct;
 use serde_derive::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct AddonEntry {
@@ -21,7 +21,7 @@ fn default_dependency() -> bool {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     #[serde(rename = "addonDir")]
-    pub addon_dir: String,
+    pub addon_dir: PathBuf,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub addons: Vec<AddonEntry>,
 }
@@ -70,7 +70,7 @@ fn get_initial_config() -> Config {
     let addon_dir = home_dir.join("Documents/Elder Scrolls Online/live/AddOns");
 
     Config {
-        addon_dir: addon_dir.display().to_string(),
+        addon_dir: addon_dir,
         addons: vec![],
     }
 }
@@ -82,7 +82,7 @@ fn get_initial_config() -> Config {
         home_dir.join("drive_c/users/user/My Documents/Elder Scrolls Online/live/AddOns");
 
     Config {
-        addon_dir: addon_dir.display().to_string(),
+        addon_dir: addon_dir,
         addons: vec![],
     }
 }
@@ -90,7 +90,7 @@ fn get_initial_config() -> Config {
 #[cfg(target_os = "macos")]
 fn get_initial_config() -> Config {
     Config {
-        addon_dir: String::from(""),
+        addon_dir: PathBuf::new(),
         addons: vec![],
     }
 }

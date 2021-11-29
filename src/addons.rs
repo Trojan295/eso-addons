@@ -10,7 +10,9 @@ use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 use std::{error::Error, rc::Rc};
 use tempfile::tempfile;
+use walkdir::WalkDir;
 
+#[derive(Debug)]
 pub struct Addon {
     pub name: String,
     pub depends_on: Vec<String>,
@@ -31,34 +33,45 @@ fn extract_dependency(dep: &str) -> Option<String> {
 }
 
 impl Manager {
-    pub fn new(addon_dir: &str) -> Manager {
+    pub fn new(addon_dir: &Path) -> Manager {
         let path = PathBuf::from(addon_dir);
 
         Manager { addon_dir: path }
     }
 
     pub fn get_addons(&self) -> Result<AddonList, Box<dyn Error>> {
-        let read_dir = fs::read_dir(&self.addon_dir)
-            .chain_err(&format!("while listing addon dir {:?}", self.addon_dir))?;
-
         let mut addon_list = AddonList {
             addons: vec![],
             errors: vec![],
         };
 
-        for entry in read_dir {
-            let entry = entry?;
-            let path = entry.path();
+        let re = Regex::new(r"^.+(/.+){2}\.txt$").unwrap();
 
-            if !path.is_dir() {
-                continue;
+        for entry in WalkDir::new(&self.addon_dir) {
+            let entry_dir = entry?;
+            let file_path = entry_dir.path();
+
+            let file_name = entry_dir.file_name();
+            let parent_dir_name = file_path.parent().map(|f| f.file_name()).flatten();
+
+            match parent_dir_name {
+                None => continue,
+                Some(parent_dir_name) => {
+                    let mut name = parent_dir_name.to_os_string();
+                    name.push(".txt");
+                    if name != file_name {
+                        continue;
+                    }
+                }
             }
 
-            match self.read_addon(&path) {
+            let addon_dir = file_path.parent().unwrap();
+
+            match self.read_addon(addon_dir) {
                 Ok(addon) => addon_list.addons.push(addon),
                 Err(err) => addon_list
                     .errors
-                    .push(format!("while reading addon {:?}: {}", &path, err).into()),
+                    .push(format!("while reading addon {:?}: {}", file_path, err).into()),
             }
         }
 
