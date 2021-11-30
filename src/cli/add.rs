@@ -1,4 +1,5 @@
 use eso_addons::{
+    addons,
     addons::Manager,
     config::{self, AddonEntry, Config},
     errors::ErrorChain,
@@ -6,7 +7,6 @@ use eso_addons::{
 };
 use html5ever::{tendril::TendrilSink, tree_builder::TreeBuilderOpts, ParseOpts};
 use markup5ever_rcdom::{Node, NodeData, RcDom};
-use regex::Regex;
 use std::{error::Error, path::Path, rc::Rc};
 
 #[derive(Parser)]
@@ -76,7 +76,7 @@ impl AddCommand {
             .read_from(&mut response)?;
 
         let addon_name = get_addon_name(&dom).ok_or(simple_error!("failed to get addon name"))?;
-        let download_url = get_download_url(&addon_url);
+        let download_url = addons::get_download_url(&addon_url);
 
         Ok(AddonEntry {
             name: addon_name,
@@ -134,16 +134,5 @@ fn get_addon_name(dom: &RcDom) -> Option<String> {
             None
         }
         _ => None,
-    })
-}
-
-fn get_download_url(addon_url: &str) -> Option<String> {
-    let re = Regex::new(r"^https://.*esoui.com/downloads/info(\d+)-(.+)\.html$").unwrap();
-    re.captures(addon_url).map(|captures| {
-        format!(
-            "https://www.esoui.com/downloads/download{}-{}.html",
-            captures[1].to_owned(),
-            captures[2].to_owned()
-        )
     })
 }
