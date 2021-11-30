@@ -260,23 +260,25 @@ fn get_cdn_download_link(dom: &RcDom) -> Option<String> {
 }
 
 pub fn get_download_url(addon_url: &str) -> Option<String> {
-    let fns = vec![
+    let fns: Vec<fn(&str) -> Option<String>> = vec![
         |url: &str| {
             let re = Regex::new(r"^https://.*esoui\.com/downloads/info(\d+)-(.+)$").unwrap();
             re.captures(url).map(|captures| {
-                format!(
-                    "https://www.esoui.com/downloads/download{}",
-                    captures[1].to_owned(),
-                )
+                captures[1].to_owned()
             })
         },
-        |url: &str| Some("ok".to_owned()),
+        |url: &str| {
+            let re = Regex::new(r"^https://.+esoui\.com/downloads/fileinfo\.php\?id=(\d+)$").unwrap();
+            re.captures(url).map(|captures| {
+                captures[1].to_owned()
+            })
+        }
     ];
 
     for f in fns {
         let url = f(addon_url);
-        if url.is_some() {
-            return url;
+        if let Some(id) = url {
+            return Some(format!("https://www.esoui.com/downloads/download{}", id));
         }
     }
 
@@ -308,10 +310,10 @@ mod tests {
                 "https://www.esoui.com/downloads/info1360-CombatMetrics.html",
                 Some("https://www.esoui.com/downloads/download1360".to_string()),
             ),
-            //(
-            //    "https://www.esoui.com/downloads/fileinfo.php?id=2817",
-            //    Some("https://www.esoui.com/downloads/download2817".to_string()),
-            //),
+            (
+                "https://www.esoui.com/downloads/fileinfo.php?id=2817",
+                Some("https://www.esoui.com/downloads/download2817".to_string()),
+            ),
         ];
 
         for test in tests {
