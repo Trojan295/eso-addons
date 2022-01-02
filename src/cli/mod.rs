@@ -17,7 +17,7 @@ mod update;
     about = "CLI tool for managing addons for The Elder Scrolls Online"
 )]
 struct Opts {
-    #[clap(short, long, about = "Path to TOML config file")]
+    #[clap(short, long, help = "Path to TOML config file")]
     config: Option<String>,
     #[clap(subcommand)]
     subcmd: SubCommand,

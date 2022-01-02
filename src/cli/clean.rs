@@ -1,3 +1,4 @@
+use clap::Parser;
 use colored::*;
 use eso_addons::{
     addons::{Addon, Manager},
