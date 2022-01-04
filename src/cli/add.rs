@@ -1,3 +1,4 @@
+use clap::Parser;
 use eso_addons::{
     addons,
     addons::Manager,
@@ -15,7 +16,7 @@ pub struct AddCommand {
     #[clap(
         short,
         long,
-        about = "Indicate, if the addon is only a dependency for another addon"
+        help = "Indicate, if the addon is only a dependency for another addon"
     )]
     #[clap(short)]
     dependency: bool,
