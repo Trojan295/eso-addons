@@ -182,16 +182,6 @@ impl Manager {
                 let mut outfile = fs::File::create(&outpath).unwrap();
                 io::copy(&mut file, &mut outfile).unwrap();
             }
-
-            // Get and Set permissions
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-
-                if let Some(mode) = file.unix_mode() {
-                    fs::set_permissions(&outpath, fs::Permissions::from_mode(mode)).unwrap();
-                }
-            }
         }
 
         let mut addon_path = self.addon_dir.to_owned();
