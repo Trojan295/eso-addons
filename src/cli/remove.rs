@@ -7,6 +7,8 @@ use eso_addons::{
     config::{self, Config},
 };
 
+use super::{Error, Result};
+
 #[derive(Parser)]
 pub struct RemoveCommand {
     name: Option<String>,
@@ -18,7 +20,7 @@ impl RemoveCommand {
         config: &mut Config,
         config_filepath: &Path,
         addon_manager: &Manager,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let addon_name = match &self.name {
             Some(name) => name.to_owned(),
             None => self.ask_for_addon_name(addon_manager)?,
@@ -28,7 +30,9 @@ impl RemoveCommand {
             .addons
             .iter()
             .position(|entry| entry.name == addon_name)
-            .ok_or(simple_error!("failed to find addon {}", addon_name))?;
+            .ok_or(Error::Other(Box::new(super::errors::Error::AddonNotFound(
+                addon_name,
+            ))))?;
 
         let entry = config.addons.remove(idx);
 
@@ -44,10 +48,7 @@ impl RemoveCommand {
         Ok(())
     }
 
-    fn ask_for_addon_name(
-        &self,
-        addon_manager: &Manager,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    fn ask_for_addon_name(&self, addon_manager: &Manager) -> Result<String> {
         let addons: Vec<String> = addon_manager
             .get_addons()?
             .addons
@@ -55,16 +56,17 @@ impl RemoveCommand {
             .map(|addon| addon.name.clone())
             .collect();
 
+        if addons.is_empty() {
+            return Err(Error::NoAddonsInstalled);
+        }
+
         let question = requestty::Question::select("addon_name")
             .message("Select addon to remove")
             .choices(addons)
             .build();
 
-        let answer = requestty::prompt_one(question)?;
+        let answer = requestty::prompt_one(question).map_err(|err| Error::Other(Box::new(err)))?;
 
-        answer
-            .as_list_item()
-            .map(|item| item.text.clone())
-            .ok_or(Box::new(simple_error!("no addon selected")))
+        Ok(answer.as_list_item().map(|item| item.text.clone()).unwrap())
     }
 }

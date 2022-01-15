@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use super::{Error, Result};
 use colored::*;
 use eso_addons::addons::Manager;
 use eso_addons::config::Config;
@@ -9,11 +10,7 @@ use prettytable::{format, Table};
 pub struct ListCommand {}
 
 impl ListCommand {
-    pub fn run(
-        &self,
-        addon_manager: &Manager,
-        config: &Config,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, addon_manager: &Manager, config: &Config) -> Result<()> {
         let mut table = Table::new();
 
         let mut addon_status: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -36,7 +33,9 @@ impl ListCommand {
         table.set_titles(row!["Name".bold(), "Status".bold()]);
 
         let desired_addons = &config.addons;
-        let installed_addons_list = addon_manager.get_addons()?;
+        let installed_addons_list = addon_manager
+            .get_addons()
+            .map_err(|err| Error::AppError(err))?;
 
         for addon in desired_addons {
             addon_status.insert(addon.name.clone(), vec![]);

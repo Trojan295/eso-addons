@@ -1,6 +1,6 @@
+use crate::errors::{Error, Result};
 use crate::htmlparser;
 
-use super::errors::ErrorChain;
 use html5ever::tendril::TendrilSink;
 use html5ever::{self, tree_builder::TreeBuilderOpts, ParseOpts};
 use markup5ever_rcdom::{Node, NodeData, RcDom};
@@ -8,7 +8,7 @@ use regex::Regex;
 use std::fs::{self, File};
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
-use std::{error::Error, rc::Rc};
+use std::{error, rc::Rc};
 use tempfile::tempfile;
 use walkdir::WalkDir;
 
@@ -20,7 +20,7 @@ pub struct Addon {
 
 pub struct AddonList {
     pub addons: Vec<Addon>,
-    pub errors: Vec<Box<dyn Error>>,
+    pub errors: Vec<Box<dyn error::Error>>,
 }
 
 pub struct Manager {
@@ -39,14 +39,21 @@ impl Manager {
         Manager { addon_dir: path }
     }
 
-    pub fn get_addons(&self) -> Result<AddonList, Box<dyn Error>> {
+    pub fn get_addons(&self) -> Result<AddonList> {
         let mut addon_list = AddonList {
             addons: vec![],
             errors: vec![],
         };
 
+        if let Err(err) = fs::metadata(&self.addon_dir) {
+            return Err(Error::CannotOpenAddonDirectory(
+                self.addon_dir.to_str().unwrap().to_owned(),
+                Box::new(err),
+            ));
+        }
+
         for entry in WalkDir::new(&self.addon_dir) {
-            let entry_dir = entry?;
+            let entry_dir = entry.map_err(|err| Error::Other(Box::new(err)))?;
             let file_path = entry_dir.path();
 
             let file_name = entry_dir.file_name();
@@ -76,20 +83,14 @@ impl Manager {
         Ok(addon_list)
     }
 
-    pub fn get_addon(&self, name: &str) -> Result<Option<Addon>, Box<dyn Error>> {
-        let addon_list = self.get_addons().chain_err("while getting addons")?;
+    pub fn get_addon(&self, name: &str) -> Result<Option<Addon>> {
+        let addon_list = self.get_addons()?;
         let found = addon_list.addons.into_iter().find(|x| x.name == name);
         Ok(found)
     }
 
-    fn read_addon(&self, path: &Path) -> Result<Addon, Box<dyn Error>> {
-        let addon_name = path
-            .file_name()
-            .ok_or(simple_error!("cannot get filename"))?;
-
-        let addon_name = addon_name
-            .to_str()
-            .ok_or(simple_error!("failed to get addon name"))?;
+    fn read_addon(&self, path: &Path) -> Result<Addon> {
+        let addon_name = path.file_name().unwrap().to_str().unwrap();
 
         let file = self.open_addon_metadata_file(path, addon_name)?;
         let re = Regex::new(r"## (.*): (.*)").unwrap();
@@ -124,17 +125,18 @@ impl Manager {
         Ok(addon)
     }
 
-    pub fn delete_addon(&self, addon: &Addon) -> Result<(), Box<dyn Error>> {
+    pub fn delete_addon(&self, addon: &Addon) -> Result<()> {
         let mut addon_path = self.addon_dir.to_owned();
         addon_path.push(&addon.name);
 
-        fs::remove_dir_all(addon_path).chain_err("while removing addon directory")?;
-
+        fs::remove_dir_all(addon_path)
+            .map_err(|err| Error::CannotRemoveAddon(addon.name.to_owned(), Box::new(err)))?;
         Ok(())
     }
 
-    pub fn download_addon(&self, url: &str) -> Result<Addon, Box<dyn Error>> {
-        let mut response = reqwest::blocking::get(url)?;
+    pub fn download_addon(&self, url: &str) -> Result<Addon> {
+        let mut response = reqwest::blocking::get(url)
+            .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
 
         let opts = ParseOpts {
             tree_builder: TreeBuilderOpts {
@@ -150,17 +152,25 @@ impl Manager {
 
         let download_link = get_cdn_download_link(&dom);
 
-        let download_link =
-            download_link.ok_or(simple_error!("failed to get CDN download link"))?;
+        let download_link = download_link.ok_or(Error::CannotDownloadAddon(
+            url.to_owned(),
+            Box::new(simple_error!("failed to get CDN download link")),
+        ))?;
 
-        let mut response = reqwest::blocking::get(&download_link)?;
+        let mut response = reqwest::blocking::get(&download_link)
+            .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
 
         let mut tmpfile = tempfile()?;
-        response.copy_to(&mut tmpfile)?;
-        let mut archive = zip::ZipArchive::new(tmpfile)?;
+        response
+            .copy_to(&mut tmpfile)
+            .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
+        let mut archive = zip::ZipArchive::new(tmpfile)
+            .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
 
         for i in 0..archive.len() {
-            let mut file = archive.by_index(i)?;
+            let mut file = archive
+                .by_index(i)
+                .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
             let outpath = match file.enclosed_name() {
                 Some(path) => {
                     let mut p = self.addon_dir.clone();
@@ -185,22 +195,18 @@ impl Manager {
         }
 
         let mut addon_path = self.addon_dir.to_owned();
-        let addon_name = archive.by_index(0)?;
+        let addon_name = archive
+            .by_index(0)
+            .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
         let addon_name = get_root_dir(&addon_name.mangled_name());
         addon_path.push(addon_name);
 
-        let addon = self
-            .read_addon(&addon_path)
-            .chain_err("while reading addon")?;
+        let addon = self.read_addon(&addon_path)?;
 
         Ok(addon)
     }
 
-    fn open_addon_metadata_file(
-        &self,
-        path: &Path,
-        addon_name: &str,
-    ) -> Result<File, Box<dyn Error>> {
+    fn open_addon_metadata_file(&self, path: &Path, addon_name: &str) -> Result<File> {
         let mut filepath = path.to_owned();
         let mut filepath_lowercase = path.to_owned();
 
@@ -211,12 +217,13 @@ impl Manager {
         filepath_lowercase.push(filename_lowercase);
 
         if filepath.exists() {
-            File::open(&filepath).chain_err(&format!("failed to open {:?}", &filepath))
+            File::open(&filepath).map_err(|err| Error::Other(Box::new(err)))
         } else if filepath_lowercase.exists() {
-            File::open(&filepath_lowercase)
-                .chain_err(&format!("failed to open {:?}", &filepath_lowercase))
+            File::open(&filepath_lowercase).map_err(|err| Error::Other(Box::new(err)))
         } else {
-            Err("metadata file is missing".into())
+            Err(Error::Other(Box::new(simple_error!(
+                "missing addon metadata file"
+            ))))
         }
     }
 }
@@ -253,16 +260,13 @@ pub fn get_download_url(addon_url: &str) -> Option<String> {
     let fns: Vec<fn(&str) -> Option<String>> = vec![
         |url: &str| {
             let re = Regex::new(r"^https://.*esoui\.com/downloads/info(\d+)-(.+)$").unwrap();
-            re.captures(url).map(|captures| {
-                captures[1].to_owned()
-            })
+            re.captures(url).map(|captures| captures[1].to_owned())
         },
         |url: &str| {
-            let re = Regex::new(r"^https://.+esoui\.com/downloads/fileinfo\.php\?id=(\d+)$").unwrap();
-            re.captures(url).map(|captures| {
-                captures[1].to_owned()
-            })
-        }
+            let re =
+                Regex::new(r"^https://.+esoui\.com/downloads/fileinfo\.php\?id=(\d+)$").unwrap();
+            re.captures(url).map(|captures| captures[1].to_owned())
+        },
     ];
 
     for f in fns {

@@ -10,9 +10,7 @@ mod cli;
 
 fn main() {
     match cli::run() {
-        Err(error) => {
-            println!("Failed to execute: {}", error)
-        }
-        _ => {}
+        Err(err) => println!("{}", err),
+        Ok(()) => {}
     }
 }

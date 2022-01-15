@@ -1,22 +1,18 @@
 use colored::*;
-use eso_addons::{addons::Manager, config::Config, errors::ErrorChain};
+use eso_addons::{addons::Manager, config::Config};
+
+use super::errors::*;
 
 #[derive(Parser)]
 pub struct UpdateCommand {}
 
 impl UpdateCommand {
-    pub fn run(
-        &self,
-        config: &Config,
-        addon_manager: &Manager,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, config: &Config, addon_manager: &Manager) -> Result<()> {
         let desired_addons = &config.addons;
 
         for addon in desired_addons.iter() {
             let installed = if let Some(ref url) = addon.url {
-                let installed = addon_manager
-                    .download_addon(&url)
-                    .chain_err(&format!("while downloading {}", addon.name))?;
+                let installed = addon_manager.download_addon(&url)?;
                 Some(installed)
             } else {
                 addon_manager.get_addon(&addon.name)?

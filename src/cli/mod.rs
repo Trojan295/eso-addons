@@ -6,9 +6,12 @@ use std::path::PathBuf;
 
 mod add;
 mod clean;
+mod errors;
 mod list;
 mod remove;
 mod update;
+
+use errors::{Error, Result};
 
 #[derive(Parser)]
 #[clap(
@@ -37,7 +40,7 @@ enum SubCommand {
     Remove(remove::RemoveCommand),
 }
 
-pub fn run() -> Result<(), Box<dyn std::error::Error>> {
+pub fn run() -> Result<()> {
     let opts: Opts = Opts::parse();
 
     let home_dir = dirs::home_dir().unwrap();
@@ -48,14 +51,16 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         .map(|x| PathBuf::from(&x))
         .unwrap_or(default_config_filepath);
 
-    let mut config = config::parse_config(&config_filepath)?;
+    let mut config = config::parse_config(&config_filepath).map_err(|err| Error::AppError(err))?;
 
     let addon_manager = addons::Manager::new(&config.addon_dir);
 
     match opts.subcmd {
         SubCommand::List(list) => list.run(&addon_manager, &config),
         SubCommand::Update(update) => update.run(&config, &addon_manager),
-        SubCommand::Clean(mut clean) => clean.run(&config, &addon_manager),
+        SubCommand::Clean(mut clean) => clean
+            .run(&config, &addon_manager)
+            .map_err(|err| Error::Other(err)),
         SubCommand::Add(mut add) => add.run(&mut config, &config_filepath, &addon_manager),
         SubCommand::Remove(remove) => remove.run(&mut config, &config_filepath, &addon_manager),
     }
