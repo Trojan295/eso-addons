@@ -3,12 +3,13 @@ use eso_addons::{
     addons,
     addons::Manager,
     config::{self, AddonEntry, Config},
-    errors::ErrorChain,
     htmlparser,
 };
 use html5ever::{tendril::TendrilSink, tree_builder::TreeBuilderOpts, ParseOpts};
 use markup5ever_rcdom::{Node, NodeData, RcDom};
-use std::{error::Error, path::Path, rc::Rc};
+use std::{path::Path, rc::Rc};
+
+use super::{Error, Result};
 
 #[derive(Parser)]
 pub struct AddCommand {
@@ -28,7 +29,7 @@ impl AddCommand {
         cfg: &mut Config,
         config_filepath: &Path,
         addon_manager: &Manager,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<()> {
         let mut entry = self.get_entry()?;
 
         if cfg.addons.iter().find(|el| el.url == entry.url).is_some() {
@@ -36,9 +37,7 @@ impl AddCommand {
             return Ok(());
         }
 
-        let installed = addon_manager
-            .download_addon(&entry.url.clone().unwrap())
-            .chain_err(&format!("while downloading {}", &entry.name))?;
+        let installed = addon_manager.download_addon(&entry.url.clone().unwrap())?;
 
         if entry.name != installed.name {
             entry.name = installed.name;
@@ -53,16 +52,19 @@ impl AddCommand {
         Ok(())
     }
 
-    pub fn get_entry(&mut self) -> Result<AddonEntry, Box<dyn Error>> {
+    pub fn get_entry(&mut self) -> Result<AddonEntry> {
         if self.addon_url.is_none() {
-            self.ask_for_fields()
-                .chain_err(&format!("failed to get parameters"))?;
+            self.ask_for_fields()?;
         }
 
-        let addon_url = self.addon_url.clone().ok_or("missing addon URL")?;
+        let addon_url = self
+            .addon_url
+            .clone()
+            .ok_or(Error::Other("missing addon URL".into()))?;
         let dependency = self.dependency;
 
-        let mut response = reqwest::blocking::get(&addon_url)?;
+        let mut response =
+            reqwest::blocking::get(&addon_url).map_err(|err| Error::Other(Box::new(err)))?;
 
         let opts = ParseOpts {
             tree_builder: TreeBuilderOpts {
@@ -74,9 +76,11 @@ impl AddCommand {
 
         let dom = html5ever::parse_document(RcDom::default(), opts)
             .from_utf8()
-            .read_from(&mut response)?;
+            .read_from(&mut response)
+            .map_err(|err| Error::Other(Box::new(err)))?;
 
-        let addon_name = get_addon_name(&dom).ok_or(simple_error!("failed to get addon name"))?;
+        let addon_name =
+            get_addon_name(&dom).ok_or(Error::Other("failed to get addon name".into()))?;
         let download_url = addons::get_download_url(&addon_url);
 
         Ok(AddonEntry {
@@ -86,7 +90,7 @@ impl AddCommand {
         })
     }
 
-    fn ask_for_fields(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn ask_for_fields(&mut self) -> Result<()> {
         let questions = vec![
             requestty::Question::input("addon_url")
                 .message("URL of the addon on esoui.com")
@@ -97,7 +101,7 @@ impl AddCommand {
                 .build(),
         ];
 
-        let answers = requestty::prompt(questions)?;
+        let answers = requestty::prompt(questions).map_err(|err| Error::Other(Box::new(err)))?;
 
         if let Some(addon_url) = answers.get("addon_url") {
             self.addon_url = addon_url.as_string().map(|x| x.to_owned());

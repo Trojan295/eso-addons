@@ -1,7 +1,6 @@
 use super::errors::*;
 use serde::ser::SerializeStruct;
 use serde_derive::{Deserialize, Serialize};
-use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -27,7 +26,7 @@ pub struct Config {
 }
 
 impl serde::Serialize for AddonEntry {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
@@ -40,25 +39,23 @@ impl serde::Serialize for AddonEntry {
     }
 }
 
-pub fn parse_config(path: &Path) -> Result<Config, Box<dyn Error>> {
+pub fn parse_config(path: &Path) -> Result<Config> {
     if !path.exists() {
         create_initial_config(path)?;
     }
 
-    let config_data = fs::read_to_string(path)
-        .chain_err(&format!("while reading config file at {}", path.display()))?;
-    let config: Config = toml::from_str(&config_data)?;
+    let config_data = fs::read_to_string(path).map_err(|_| Error::CannotLoadConfig)?;
+    let config: Config = toml::from_str(&config_data).map_err(|_| Error::CannotLoadConfig)?;
     Ok(config)
 }
 
-pub fn save_config(path: &Path, cfg: &Config) -> Result<(), Box<dyn Error>> {
-    let config_str = toml::to_string(cfg)?;
-    fs::write(path, config_str)
-        .chain_err(&format!("while writing config file at {}", path.display()))?;
+pub fn save_config(path: &Path, cfg: &Config) -> Result<()> {
+    let config_str = toml::to_string(cfg).map_err(|err| Error::Other(Box::new(err)))?;
+    fs::write(path, config_str)?;
     Ok(())
 }
 
-fn create_initial_config(path: &Path) -> Result<(), Box<dyn Error>> {
+fn create_initial_config(path: &Path) -> Result<()> {
     let config = get_initial_config();
     save_config(path, &config)?;
     Ok(())
