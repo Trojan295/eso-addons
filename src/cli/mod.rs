@@ -51,7 +51,7 @@ pub fn run() -> Result<()> {
         .map(|x| PathBuf::from(&x))
         .unwrap_or(default_config_filepath);
 
-    let mut config = config::parse_config(&config_filepath).map_err(|err| Error::AppError(err))?;
+    let mut config = config::parse_config(&config_filepath)?;
 
     let addon_manager = addons::Manager::new(&config.addon_dir);
 

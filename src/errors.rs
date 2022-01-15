@@ -1,11 +1,12 @@
-use std::error;
+use std::{error, path::PathBuf};
 
 #[derive(Debug)]
 pub enum Error {
-    CannotOpenAddonDirectory(String, Box<dyn error::Error>),
+    CannotOpenAddonDirectory(PathBuf, Box<dyn error::Error>),
     CannotRemoveAddon(String, Box<dyn error::Error>),
     CannotLoadConfig,
     CannotDownloadAddon(String, Box<dyn error::Error>),
+    CannotReadAddon(String, Box<dyn error::Error>),
     Other(Box<dyn error::Error>),
 }
 
@@ -19,7 +20,7 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self {
             Error::CannotOpenAddonDirectory(dir, err) => {
-                f.write_str(&format!("cannot open addon directory {}: {}", dir, err))
+                f.write_str(&format!("cannot open addon directory {:?}: {}", dir, err))
             }
             Error::CannotRemoveAddon(name, err) => {
                 f.write_str(&format!("cannot remove addon {}: {}", name, err))
@@ -28,27 +29,14 @@ impl std::fmt::Display for Error {
             Error::CannotDownloadAddon(url, err) => {
                 f.write_str(&format!("cannot download addon {}: {}", url, err))
             }
+            Error::CannotReadAddon(name, err) => {
+                f.write_str(&format!("cannot read addon {}: {}", name, err))
+            }
             Error::Other(err) => err.fmt(f),
         }
     }
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
-
 impl error::Error for Error {}
 
-//pub trait ErrorChain<T> {
-//fn chain_err(self, msg: &str) -> std::result::Result<T, Box<dyn error::Error>>;
-//}
-
-//impl<T> ErrorChain<T> for std::result::Result<T, Box<dyn error::Error>> {
-//fn chain_err(self, msg: &str) -> std::result::Result<T, Box<dyn error::Error>> {
-//self.map_err(|e| Box::new(simple_error!("{}: {}", msg, e)) as Box<dyn error::Error>)
-//}
-//}
-
-//impl<T> ErrorChain<T> for std::result::Result<T, std::io::Error> {
-//fn chain_err(self, msg: &str) -> std::result::Result<T, Box<dyn error::Error>> {
-//self.map_err(|e| Box::new(simple_error!("{}: {}", msg, e)) as Box<dyn error::Error>)
-//}
-//}
+pub type Result<T> = std::result::Result<T, Error>;

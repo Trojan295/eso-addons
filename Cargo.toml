@@ -18,7 +18,6 @@ serde = "1.0"
 serde_derive = "1.0"
 clap = { version = "3.0.0", features = ["derive", "cargo"] }
 dirs = "3.0"
-simple-error = "0.2"
 regex = "1"
 reqwest = { version = "0.10", features = ["blocking"] }
 openssl = { version = "0.10", features = ["vendored"] }

@@ -8,7 +8,7 @@ use regex::Regex;
 use std::fs::{self, File};
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
-use std::{error, rc::Rc};
+use std::rc::Rc;
 use tempfile::tempfile;
 use walkdir::WalkDir;
 
@@ -20,7 +20,7 @@ pub struct Addon {
 
 pub struct AddonList {
     pub addons: Vec<Addon>,
-    pub errors: Vec<Box<dyn error::Error>>,
+    pub errors: Vec<Error>,
 }
 
 pub struct Manager {
@@ -47,13 +47,15 @@ impl Manager {
 
         if let Err(err) = fs::metadata(&self.addon_dir) {
             return Err(Error::CannotOpenAddonDirectory(
-                self.addon_dir.to_str().unwrap().to_owned(),
+                self.addon_dir.clone(),
                 Box::new(err),
             ));
         }
 
         for entry in WalkDir::new(&self.addon_dir) {
-            let entry_dir = entry.map_err(|err| Error::Other(Box::new(err)))?;
+            let entry_dir = entry.map_err(|err| {
+                Error::CannotOpenAddonDirectory(self.addon_dir.clone(), Box::new(err))
+            })?;
             let file_path = entry_dir.path();
 
             let file_name = entry_dir.file_name();
@@ -74,9 +76,7 @@ impl Manager {
 
             match self.read_addon(addon_dir) {
                 Ok(addon) => addon_list.addons.push(addon),
-                Err(err) => addon_list
-                    .errors
-                    .push(format!("while reading addon {:?}: {}", file_path, err).into()),
+                Err(err) => addon_list.errors.push(err),
             }
         }
 
@@ -92,7 +92,9 @@ impl Manager {
     fn read_addon(&self, path: &Path) -> Result<Addon> {
         let addon_name = path.file_name().unwrap().to_str().unwrap();
 
-        let file = self.open_addon_metadata_file(path, addon_name)?;
+        let file = self
+            .open_addon_metadata_file(path, addon_name)
+            .map_err(|err| Error::CannotReadAddon(addon_name.to_owned(), Box::new(err)))?;
         let re = Regex::new(r"## (.*): (.*)").unwrap();
 
         let mut addon = Addon {
@@ -154,7 +156,7 @@ impl Manager {
 
         let download_link = download_link.ok_or(Error::CannotDownloadAddon(
             url.to_owned(),
-            Box::new(simple_error!("failed to get CDN download link")),
+            "failed to get CDN download link".into(),
         ))?;
 
         let mut response = reqwest::blocking::get(&download_link)
@@ -221,9 +223,7 @@ impl Manager {
         } else if filepath_lowercase.exists() {
             File::open(&filepath_lowercase).map_err(|err| Error::Other(Box::new(err)))
         } else {
-            Err(Error::Other(Box::new(simple_error!(
-                "missing addon metadata file"
-            ))))
+            Err(Error::Other("missing addon metadata file".into()))
         }
     }
 }

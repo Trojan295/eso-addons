@@ -60,7 +60,7 @@ impl AddCommand {
         let addon_url = self
             .addon_url
             .clone()
-            .ok_or(Error::Other(Box::new(simple_error!("missing addon URL"))))?;
+            .ok_or(Error::Other("missing addon URL".into()))?;
         let dependency = self.dependency;
 
         let mut response =
@@ -79,9 +79,8 @@ impl AddCommand {
             .read_from(&mut response)
             .map_err(|err| Error::Other(Box::new(err)))?;
 
-        let addon_name = get_addon_name(&dom).ok_or(Error::Other(Box::new(simple_error!(
-            "failed to get addon name"
-        ))))?;
+        let addon_name =
+            get_addon_name(&dom).ok_or(Error::Other("failed to get addon name".into()))?;
         let download_url = addons::get_download_url(&addon_url);
 
         Ok(AddonEntry {
