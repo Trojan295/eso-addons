@@ -183,16 +183,21 @@ impl Manager {
                 None => continue,
             };
 
-            if (&*file.name()).ends_with('/') {
-                fs::create_dir_all(&outpath).unwrap();
+            if (file.name()).ends_with('/') {
+                fs::create_dir_all(&outpath)
+                    .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
             } else {
                 if let Some(p) = outpath.parent() {
                     if !p.exists() {
-                        fs::create_dir_all(&p).unwrap();
+                        fs::create_dir_all(&p).map_err(|err| {
+                            Error::CannotDownloadAddon(url.to_owned(), Box::new(err))
+                        })?;
                     }
                 }
-                let mut outfile = fs::File::create(&outpath).unwrap();
-                io::copy(&mut file, &mut outfile).unwrap();
+                let mut outfile = fs::File::create(&outpath)
+                    .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
+                io::copy(&mut file, &mut outfile)
+                    .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
             }
         }
 
