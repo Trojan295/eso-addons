@@ -1132,9 +1132,9 @@ dependencies = [
 
 [[package]]
 name = "requestty"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef6ca633bf6932164a9cba8c6ae93f7a9086a154d155e70461a79bbd90c5f4ca"
+checksum = "fdf30b6cd04b06b4b74763149e10e90f13fc824e3705ac6c21f0946dffa9cbcf"
 dependencies = [
  "requestty-ui",
  "smallvec",
@@ -1143,9 +1143,9 @@ dependencies = [
 
 [[package]]
 name = "requestty-ui"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7f8e70d25cbc5d14d73c4f0c313ef505450a7c2a39b7e2ca421bc456a4574f6"
+checksum = "9618a4542dec181c091b871699197a85e1e2e07a56c9e38a7d41cb238b92c52b"
 dependencies = [
  "bitflags",
  "crossterm",
