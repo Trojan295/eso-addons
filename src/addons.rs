@@ -1,14 +1,10 @@
 use crate::errors::{Error, Result};
 use crate::htmlparser;
 
-use html5ever::tendril::TendrilSink;
-use html5ever::{self, tree_builder::TreeBuilderOpts, ParseOpts};
-use markup5ever_rcdom::{Node, NodeData, RcDom};
 use regex::Regex;
 use std::fs::{self, File};
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 use tempfile::tempfile;
 use walkdir::WalkDir;
 
@@ -137,26 +133,10 @@ impl Manager {
     }
 
     pub fn download_addon(&self, url: &str) -> Result<Addon> {
-        let mut response = reqwest::blocking::get(url)
-            .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
-
-        let opts = ParseOpts {
-            tree_builder: TreeBuilderOpts {
-                drop_doctype: true,
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-
-        let dom = html5ever::parse_document(RcDom::default(), opts)
-            .from_utf8()
-            .read_from(&mut response)?;
-
-        let download_link = get_cdn_download_link(&dom);
-
+        let download_link = htmlparser::get_document(url).map(htmlparser::get_cdn_download_link)?;
         let download_link = download_link.ok_or(Error::CannotDownloadAddon(
             url.to_owned(),
-            "failed to get CDN download link".into(),
+            "CDN link missing".into(),
         ))?;
 
         let mut response = reqwest::blocking::get(&download_link)
@@ -230,34 +210,6 @@ impl Manager {
         } else {
             Err(Error::Other("missing addon metadata file".into()))
         }
-    }
-}
-
-fn get_cdn_download_link(dom: &RcDom) -> Option<String> {
-    let node = htmlparser::find_first_in_node(&dom.document, &|node: &Rc<Node>| match &node.data {
-        NodeData::Element {
-            name,
-            attrs,
-            template_contents: _,
-            mathml_annotation_xml_integration_point: _,
-        } => {
-            if &name.local == "a" {
-                for attr in attrs.borrow().iter() {
-                    if &attr.name.local == "href" {
-                        if attr.value.starts_with("https://cdn.esoui.com") {
-                            return Some(attr.value.clone());
-                        }
-                    }
-                }
-            }
-            None
-        }
-        _ => None,
-    });
-
-    match node {
-        Some(node) => Some(node.to_string()),
-        None => None,
     }
 }
 

@@ -5,9 +5,7 @@ use eso_addons::{
     config::{self, AddonEntry, Config},
     htmlparser,
 };
-use html5ever::{tendril::TendrilSink, tree_builder::TreeBuilderOpts, ParseOpts};
-use markup5ever_rcdom::{Node, NodeData, RcDom};
-use std::{path::Path, rc::Rc};
+use std::path::Path;
 
 use super::{Error, Result};
 
@@ -63,24 +61,10 @@ impl AddCommand {
             .ok_or(Error::Other("missing addon URL".into()))?;
         let dependency = self.dependency;
 
-        let mut response =
-            reqwest::blocking::get(&addon_url).map_err(|err| Error::Other(Box::new(err)))?;
+        let addon_name = htmlparser::get_document(&addon_url)
+            .map(htmlparser::get_addon_name)?
+            .ok_or(Error::Other("failed to get addon name".into()))?;
 
-        let opts = ParseOpts {
-            tree_builder: TreeBuilderOpts {
-                drop_doctype: true,
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-
-        let dom = html5ever::parse_document(RcDom::default(), opts)
-            .from_utf8()
-            .read_from(&mut response)
-            .map_err(|err| Error::Other(Box::new(err)))?;
-
-        let addon_name =
-            get_addon_name(&dom).ok_or(Error::Other("failed to get addon name".into()))?;
         let download_url = addons::get_download_url(&addon_url);
 
         Ok(AddonEntry {
@@ -113,31 +97,4 @@ impl AddCommand {
 
         Ok(())
     }
-}
-
-fn get_addon_name(dom: &RcDom) -> Option<String> {
-    htmlparser::find_first_in_node(&dom.document, &|node: &Rc<Node>| match &node.data {
-        NodeData::Element {
-            name,
-            attrs,
-            template_contents: _,
-            mathml_annotation_xml_integration_point: _,
-        } => {
-            if &name.local == "meta" {
-                for attr in attrs.borrow().iter() {
-                    if &attr.name.local == "property" {
-                        if attr.value.to_string().eq("og:title") {
-                            return attrs
-                                .borrow()
-                                .iter()
-                                .find(|x| &x.name.local == "content")
-                                .map(|x| x.value.to_string());
-                        }
-                    }
-                }
-            }
-            None
-        }
-        _ => None,
-    })
 }
