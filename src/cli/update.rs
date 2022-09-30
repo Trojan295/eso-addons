@@ -12,7 +12,14 @@ impl UpdateCommand {
 
         for addon in desired_addons.iter() {
             let installed = if let Some(ref url) = addon.url {
-                let installed = addon_manager.download_addon(&url)?;
+                let installed = match addon_manager.download_addon(&url) {
+                    Ok(installed) => installed,
+                    Err(e) => {
+                        println!("{} Failed {}!", "☒".red(), addon.name);
+                        println!("{}", e.to_string());
+                        continue;
+                    }
+                };
                 Some(installed)
             } else {
                 addon_manager.get_addon(&addon.name)?
