@@ -29,13 +29,13 @@ pub fn get_document(url: &str) -> Result<Html> {
     let mut response = reqwest::blocking::get(url)
         .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
 
-    let mut buf = String::new();
+    let mut buf = Vec::new();
 
     response
-        .read_to_string(&mut buf)
+        .read_to_end(&mut buf)
         .map_err(|err| Error::CannotDownloadAddon(url.to_owned(), Box::new(err)))?;
 
-    let document = Html::parse_document(&buf);
+    let document = Html::parse_document(&String::from_utf8_lossy(&buf));
 
     Ok(document)
 }
